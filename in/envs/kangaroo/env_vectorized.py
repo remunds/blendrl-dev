@@ -1,6 +1,7 @@
 import time
 from typing import Sequence
 import torch
+from HackAtari.hackatari.games import kangaroo
 from blendrl.env_vectorized import VectorizedNudgeBaseEnv
 from blendrl.env_utils import make_env
 from hackatari.core import HackAtari
@@ -9,6 +10,8 @@ from ocatari.ram.kangaroo import MAX_ESSENTIAL_OBJECTS
 import gymnasium as gym
 
 import time
+
+from blendrl.env_utils import kangaroo_modifs
 
 
 class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
@@ -61,7 +64,7 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
                 env_name="ALE/Kangaroo-v5",
                 mode="ram",
                 obs_mode="ori",
-                modifs=[("disable_coconut"), ("random_init"), ("change_level0")],
+                modifs=kangaroo_modifs,
                 rewardfunc_path="in/envs/kangaroo/blenderl_reward.py",
                 render_mode=render_mode,
                 render_oc_overlay=render_oc_overlay,
