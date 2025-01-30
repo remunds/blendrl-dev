@@ -8,6 +8,8 @@ from stable_baselines3.common.atari_wrappers import (  # isort:skip
     NoopResetEnv,
 )
 
+from HackAtari.hackatari.games import seaquest
+
 
 def make_env(env):
     env = gym.wrappers.RecordEpisodeStatistics(env)
@@ -22,3 +24,12 @@ def make_env(env):
     env = gym.wrappers.GrayscaleObservation(env)
     env = gym.wrappers.FrameStackObservation(env, 4)
     return env
+
+
+kangaroo_modifs = [
+    "disable_coconut",
+    "randomize_kangaroo_position",
+    "change_level_0",
+]
+
+seaquest_modifs = []
