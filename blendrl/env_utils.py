@@ -8,8 +8,6 @@ from stable_baselines3.common.atari_wrappers import (  # isort:skip
     NoopResetEnv,
 )
 
-from HackAtari.hackatari.games import seaquest
-
 
 def make_env(env):
     env = gym.wrappers.RecordEpisodeStatistics(env)
