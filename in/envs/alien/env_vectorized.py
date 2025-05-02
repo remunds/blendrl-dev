@@ -5,6 +5,7 @@ from blendrl.env_vectorized import VectorizedNudgeBaseEnv
 from hackatari.core import HackAtari
 import torch as th
 import gymnasium as gym
+from packaging import version
 
 MAX_NB_OBJECTS = {
     "Player": 1,
@@ -26,8 +27,9 @@ from stable_baselines3.common.atari_wrappers import (  # isort:skip
 
 
 GYMNASIUM_VERSION = version.parse(gym.__version__)
+print(f"Gymnasium version: {GYMNASIUM_VERSION}")
 
-if GYMNASIUM_VERSION <= version.parse("0.3.0"):
+if GYMNASIUM_VERSION <= version.parse("0.30.0"):
     def make_env(env):
         env = gym.wrappers.RecordEpisodeStatistics(env)
         env = gym.wrappers.AutoResetWrapper(env)
