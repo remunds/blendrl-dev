@@ -504,7 +504,7 @@ image:img
 
 ### clauses.txt
 
-> Clauses in FOL (first order logic) that map actions to game states. \<p> represents a letter or name to identify an object, e.g. P for player. _list denotes a comma separated list (no spaces) of n repetitions.
+> Clauses in FOL (first order logic) that map actions to game states. The first part of the rule specifies the action we want the agent to do if the second part of the rule is evaluated as likely true. These rules return a distribution of weights, which for each action represent the likelihood that the conditions for this action are true. \<p> represents a letter or name to identify an object, e.g. P for player. _list denotes a comma separated list (no spaces) of n repetitions.
 
 ```txt
 <action_name>(<p>):-<state_name>(<p>_list)_list.
@@ -513,7 +513,7 @@ image:img
 
 ### blender_clauses.txt
 
-> Clauses that define the weights of the logic or neural agent depending on game state. _list denotes a comma separated list (no spaces) of n repetitions.
+> Clauses that specify when we want the blending module to switch between the reactive neural or strategic logic policy. The rules here consist first of the desired policy and then the condition for that policy. These again return a weight for both the neural and logic part, which are multiplied onto the weights of the weights returned by the neural and logic modules to get a final weight, of which the highest is chosen as the next action to take. _list denotes a comma separated list (no spaces) of n repetitions.
 
 ```txt
 neural_agent(X):-<state_name>(<p>_list)_list.
