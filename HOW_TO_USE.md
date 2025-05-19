@@ -1,4 +1,4 @@
-# Implementing a New Game in blendrl
+# Implementing a New Game in Blendrl
 
 This guide provides a structured approach to implementing a new game in blendrl using OCAtari and HackAtari. It covers environment setup, file structure, logic implementation, training, and evaluation.
 
@@ -115,7 +115,7 @@ pip install tensorboard
 ### Verify installation
 
 You should now be able to run the training script.
-> env_name: the name of the environent  
+> env_name: the name of the environment  
 num_envs: the number of parallel game environments  
 num_steps: the number of steps to run in each environment per policy rollout  
 gamma: the discount factor gamma  
@@ -127,11 +127,11 @@ more parameters can be found in blendrl/train_blendrl.py
 python train_blenderl.py --env-name <name> --joint-training --num-steps <int> --num-envs <int> --gamma 0.99　
 ```
 
-## Developmenrt Workflow
+## Development Workflow
 
 ### File structure
 
->The following diagram show the file structure of the blendrl project.
+>The following diagram shows the file structure of the blendrl project.
 
 ```
 /blendrl
@@ -166,7 +166,7 @@ python train_blenderl.py --env-name <name> --joint-training --num-steps <int> --
 
 ### Workflow
 
->Example worklfow to integrate a new game with the blendrl project.
+>Example workflow to integrate a new game with the blendrl project.
 
 ```
 ┌──────────────────┐      ┌────────────────┐      ┌──────────┐      ┌─────────────────┐      
@@ -316,7 +316,7 @@ class NudgeEnv(NudgeBaseEnv):
 
 ### env_vectorized.py
 
->Vectorized game environment for parallell training.
+>Vectorized game environment for parallel training.
 
 ```python
 import ...
@@ -415,16 +415,16 @@ def reward_function(self) -> float:
 
 ### mlp.py
 
->Define Mulit Layer Perceptron Neural Network 
+>Define Multi-Layer Perceptron Neural Network 
 
 ```python
 class MLP(torch.nn.Module):
 	"""
-	Multi-Layer Perceptron (MLP) for processing object-centric game states in BlendRL.
+	Multi-Layer Perceptron (MLP) for processing object-centric game states in blendrl.
 	
 	This neural network expects a fixed-size input representing multiple game objects 
 	(entities), each described by a set of features. The MLP is used to produce either 
-	action logits, probabilities, or other value estimates depending on its configuration.
+	action logits (raw, unnormalized output), probabilities, or other value estimates depending on its configuration.
 	
 	Args:
 		in_channels (int): Number of channels of the input.
@@ -467,7 +467,7 @@ class MLP(torch.nn.Module):
 		    state (torch.Tensor): Input tensor of shape (batch_size, num_objects, num_features).
 		
 		Returns:
-		    torch.Tensor: Output tensor of shape (batch_size, out_size) representing logits or scores.
+		    torch.Tensor: Output tensor of shape (batch_size, out_size) representing logits (raw, unnormalized output) or scores.
 		"""
 	
 	return y 
@@ -603,7 +603,7 @@ python train_blenderl.py [--arg1 value1] [--arg2 value2] ...
 | `minibatch_size`       | int     | Computed at runtime |
 | `num_iterations`       | int     | Computed at runtime |
 
-> BlendRL-Specific Arguments
+> Blendrl-Specific Arguments
 
 | Argument                   | Type    | Default       | Description |
 |----------------------------|---------|---------------|-------------|
