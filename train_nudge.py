@@ -315,7 +315,7 @@ def main():
             #             print("Environment {} has been reset".format(k))
             if next_done.any():
                 done_num += next_done.sum().item()
-                if done_num == args.num_envs:
+                if done_num >= args.num_envs:
                     done_num = 0
                     print("all_done")
                     # 0 is the changed reward

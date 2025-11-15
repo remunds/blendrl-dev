@@ -302,8 +302,6 @@ def main():
             # update rtpt
             global_step += args.num_envs
             obs[step] = next_obs
-            # print(logic_obs.shape)
-            # print(next_logic_obs.shape)
             logic_obs[step] = next_logic_obs
             dones[step] = next_done
 
@@ -359,7 +357,7 @@ def main():
             #         print("Environment {} has been reset".format(k))
             if next_done.any():
                 done_num += next_done.sum().item()
-                if done_num == args.num_envs:
+                if done_num >= args.num_envs:
                     done_num = 0
                     print("all_done")
                     # 0 is the changed reward
