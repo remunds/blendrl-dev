@@ -49,19 +49,18 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
     
         #TODO: For actual BlendRL style, we should use ObjectCentricAndPixelObsWrapper
         # then feed pixel as neural state and oc as logic state
-        # But: for fair comparison with NEXUS, we keep only OC observations for now
+        # But: for fair comparison with NEXUS, we keep only OC observations
         env = AtariWrapper(
             env,
             episodic_life=True, # explicitly set in cleanRL-envpool
-            clip_reward=True, # explicitly set in cleanRL-envpool
+            clip_reward=False, 
             max_episode_length=108000,
             frame_stack_size=4,
             max_pooling=True,
             frame_skip=4,
             noop_reset=30,
-            sticky_actions=False, # seems to be default in envpool
+            sticky_actions=False, 
             first_fire=True,
-            #full_action_space=False # TODO: this is missing in jaxatari, although default is reduced action space
         )
         self.env = MultiRewardLogWrapper(env)
 
