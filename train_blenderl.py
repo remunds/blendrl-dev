@@ -59,9 +59,11 @@ class Args:
     # Algorithm specific arguments
     env_id: str = "Seaquest-v4"
     """the id of the environment"""
-    total_timesteps: int = 60000000
+    # total_timesteps: int = 60000000
+    total_timesteps: int = 20_000_000
     """total timesteps of the experiments"""
-    num_envs: int = 20
+    # num_envs: int = 20
+    num_envs: int = 512
     """the number of parallel game environments"""
     num_steps: int = 128
     """the number of steps to run in each environment per policy rollout"""
