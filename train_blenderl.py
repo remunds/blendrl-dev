@@ -47,7 +47,7 @@ class Args:
     """if toggled, `torch.backends.cudnn.deterministic=False`"""
     cuda: bool = True
     """if toggled, cuda will be enabled by default"""
-    track: bool = False
+    track: bool = True
     """if toggled, this experiment will be tracked with Weights and Biases"""
     wandb_project_name: str = "blendeRL"
     """the wandb's project name"""
@@ -109,6 +109,9 @@ class Args:
     """the function to blend the neural and logic agents: softmax or gumbel_softmax"""
     actor_mode: str = "hybrid"
     """the mode for the agent"""
+    actor_net_cnn: bool = False
+    """the network architecture for the actor: cnn or mlp"""
+    """Use False for JaxAtari envs"""
     rules: str = "default"
     """the ruleset used in the agent"""
     save_steps: int = 5000000
@@ -135,7 +138,7 @@ def main():
 
     args = tyro.cli(Args)
     rtpt = RTPT(
-        name_initials="HS",
+        name_initials="RE",
         experiment_name="BlendeRL",
         max_iterations=int(args.total_timesteps / args.save_steps),
     )
@@ -193,6 +196,7 @@ def main():
         args.blend_function,
         args.reasoner,
         device,
+        mlp_actor=(not args.actor_net_cnn),
     )
     if args.pretrained:
         # load neural agent weights
@@ -255,10 +259,12 @@ def main():
     )
 
     # ALGO Logic: Storage setup
-    observation_space = (4, 84, 84)
+    # observation_space = (4, 84, 84)
     # logic_observation_space = (84, 51, 4)
-    logic_observation_space = (envs.n_objects, 4)
+    # logic_observation_space = (envs.n_objects, 4)
     # logic_observation_space = (84, 43, 4)
+    logic_observation_space = envs.single_logic_observation_space
+    observation_space = envs.single_observation_space
     action_space = ()
     obs = torch.zeros((args.num_steps, args.num_envs) + observation_space).to(device)
     logic_obs = torch.zeros(
@@ -282,7 +288,7 @@ def main():
     next_logic_obs = next_logic_obs.to(device)
     next_obs = torch.Tensor(next_obs).to(device)
     next_done = torch.zeros(args.num_envs).to(device)
-
+    done_num = 0
     for iteration in range(1, args.num_iterations + 1):
         # Annealing the rate if instructed to do so.
         if args.anneal_lr:
@@ -327,28 +333,45 @@ def main():
 
             episodic_game_returns += torch.tensor(reward).to(device).view(-1)
 
-            for k, info in enumerate(infos):
-                if "episode" in info:
-                    print(
-                        f"env={k}, global_step={global_step}, episodic_game_return={np.round(episodic_game_returns[k].detach().cpu().numpy(), 2)}, episodic_return={info['episode']['r']}, episodic_length={info['episode']['l']}"
-                    )
-                    writer.add_scalar(
-                        "charts/episodic_return", info["episode"]["r"], global_step
-                    )
-                    writer.add_scalar(
-                        "charts/episodic_length", info["episode"]["l"], global_step
-                    )
-                    episodic_returns.append(info["episode"]["r"])
-                    episodic_lengths.append(info["episode"]["l"])
+            # for k, info in enumerate(infos):
+            #     if "episode" in info:
+            #         print(
+            #             f"env={k}, global_step={global_step}, episodic_game_return={np.round(episodic_game_returns[k].detach().cpu().numpy(), 2)}, episodic_return={info['episode']['r']}, episodic_length={info['episode']['l']}"
+            #         )
+            #         writer.add_scalar(
+            #             "charts/episodic_return", info["episode"]["r"], global_step
+            #         )
+            #         writer.add_scalar(
+            #             "charts/episodic_length", info["episode"]["l"], global_step
+            #         )
+            #         episodic_returns.append(info["episode"]["r"])
+            #         episodic_lengths.append(info["episode"]["l"])
 
-                    # save the game reward and reset
-                    writer.add_scalar(
-                        "charts/episodic_game_return",
-                        episodic_game_returns[k],
-                        global_step,
-                    )
-                    episodic_game_returns[k] = 0
-                    print("Environment {} has been reset".format(k))
+            #         # save the game reward and reset
+            #         writer.add_scalar(
+            #             "charts/episodic_game_return",
+            #             episodic_game_returns[k],
+            #             global_step,
+            #         )
+            #         episodic_game_returns[k] = 0
+            #         print("Environment {} has been reset".format(k))
+            if next_done.any():
+                done_num += next_done.sum().item()
+                if done_num == args.num_envs:
+                    done_num = 0
+                    print("all_done")
+                    # 0 is the changed reward
+                    episodic_returns0 = infos["returned_episode_returns_0"].mean().item()
+                    env_returns = infos["returned_episode_env_returns"].mean().item()
+                    episodic_length = infos["returned_episode_lengths"].mean().item()
+                    print(f"global_step={global_step}, env_return={env_returns}, blendrl_return={episodic_returns0}, episodic_length={episodic_length}")
+                    # Game returns
+                    writer.add_scalar("charts/blendrl_return", episodic_returns0, global_step)
+                    # Training returns
+                    writer.add_scalar("charts/original_env_return", env_returns, global_step)
+                    writer.add_scalar("charts/episodic_length", episodic_length, global_step)
+                    episodic_returns.append(env_returns)
+                    episodic_lengths.append(episodic_length)
 
             # Save the model
             if global_step > save_step_bar:

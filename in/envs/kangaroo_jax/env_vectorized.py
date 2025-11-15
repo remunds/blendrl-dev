@@ -119,7 +119,6 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
                 position_array = position_array.reshape(1, -1)
             n_objects = position_array.shape[0]
             final_array = jnp.zeros((n_objects, 4), dtype=jnp.int32)
-            print("position_array:", position_array)  # --- IGNORE ---
             final_array = final_array.at[:, 0].set(jnp.where(position_array[:, 0] == -1, 0, 1))  # active
             final_array = final_array.at[:, 1].set(position_array[:, 0])
             final_array = final_array.at[:, 2].set(position_array[:, 1])

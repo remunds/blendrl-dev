@@ -7,6 +7,8 @@ import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
+from nsfr.nsfr.utils import neural
 from nudge.agents.logic_agent import NsfrActorCritic
 from nudge.agents.neural_agent import NeuralPPO, ActorCritic
 from nudge.torch_utils import softor
@@ -403,6 +405,7 @@ class BlenderActorCritic(nn.Module):
         device,
         rng=None,
         explain=False,
+        mlp_actor=False
     ):
         super(BlenderActorCritic, self).__init__()
         self.device = device
@@ -415,7 +418,8 @@ class BlenderActorCritic(nn.Module):
         self.explain = explain
         mlp_module_path = f"in/envs/{self.env.name}/mlp.py"
         module = load_module(mlp_module_path)
-        self.visual_neural_actor = load_cleanrl_agent(pretrained=False, device=device)
+        input_dim = np.prod(env.single_observation_space)
+        self.visual_neural_actor = load_cleanrl_agent(pretrained=False, device=device, cnn=(not mlp_actor), input_dim=input_dim)
         if reasoner == "neumann":
             from neumann.common import get_neumann_model
             self.logic_actor = get_neumann_model(
@@ -558,7 +562,9 @@ class BlenderActorCritic(nn.Module):
         """
         # Compute action probabilities using blenderl actor
         # size: n_envs * n_actions
-        action_probs, blending_weights = self.actor(neural_state, logic_state)
+        # keep batch_size dimension
+        neural_state_flat = neural_state.view(neural_state.size(0), -1)
+        action_probs, blending_weights = self.actor(neural_state_flat, logic_state)
         dist = Categorical(action_probs)
         blend_dist = Categorical(blending_weights)
         if action is None:
@@ -567,7 +573,7 @@ class BlenderActorCritic(nn.Module):
 
         # Compute state values using each neural and logic value function
         # size: n_envs * 1
-        neural_value = self.get_neural_value(neural_state)
+        neural_value = self.get_neural_value(neural_state_flat)
         logic_value = self.get_logic_value(logic_state)
         # blend the two values using blending weights and compute the final value
         blended_value = (

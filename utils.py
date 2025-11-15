@@ -81,6 +81,50 @@ class CNNActor(nn.Module):
         logits = self.actor(hidden)
         probs = Categorical(logits=logits)
         return probs.probs
+    
+class MLPActor(nn.Module):
+    """
+    An MLP Actor-Critic model that takes a flat array (1D vector) as input.
+    
+    Designed to have a parameter count similar to the CNNActor.
+    """
+    def __init__(self, input_dim, n_actions=18):
+        super().__init__()
+        
+        # This MLP structure approximates the parameter count of the 
+        # CNNActor's large Linear(3136, 512) layer.
+        self.network = nn.Sequential(
+            layer_init(nn.Linear(input_dim, 1024)),
+            nn.ReLU(),
+            layer_init(nn.Linear(1024, 1024)),
+            nn.ReLU(),
+            layer_init(nn.Linear(1024, 512)),
+            nn.ReLU(),
+        )
+        
+        # The actor and critic heads are identical to the original
+        self.actor = layer_init(nn.Linear(512, n_actions), std=0.01)
+        self.critic = layer_init(nn.Linear(512, 1), std=1)
+
+    def get_value(self, x):
+        # Note: Removed x / 255.0, as the input is a flat array,
+        # not assumed to be pixel data.
+        return self.critic(self.network(x))
+
+    def get_action_and_value(self, x, action=None):
+        hidden = self.network(x)
+        logits = self.actor(hidden)
+        probs = Categorical(logits=logits)
+        if action is None:
+            action = probs.sample()
+        return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
+    
+    def forward(self, x):
+        """Used for getting action probabilities during inference."""
+        hidden = self.network(x)
+        logits = self.actor(hidden)
+        probs = Categorical(logits=logits)
+        return probs.probs
 
 def get_blender(env, blender_rules, device, train=True, blender_mode='logic', reasoner='nsfr', explain=False):
     """
@@ -117,9 +161,12 @@ def load_cleanrl_envs(env_id, run_name=None, capture_video=False, num_envs=1):
     )
     return envs
     
-def load_cleanrl_agent(pretrained, device):
+def load_cleanrl_agent(pretrained, device, cnn=False, input_dim=None):
     # from cleanrl.cleanrl.ppo_atari import Agent
-    agent = CNNActor(n_actions=18) #, device=device, verbose=1)
+    if cnn:
+        agent = CNNActor(n_actions=18) #, device=device, verbose=1)
+    else:
+        agent = MLPActor(input_dim=input_dim, n_actions=18)
     if pretrained:
         try:
             agent.load_state_dict(torch.load("cleanrl/out/ppo_Seaquest-v4_1.pth"))
