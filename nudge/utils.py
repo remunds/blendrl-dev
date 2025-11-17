@@ -104,6 +104,8 @@ def load_model(model_dir,
     # env_kwargs = dict(render_oc_overlay=True)
     env_kwargs = {}
 
+    mlp_actor = "jax" in environment
+
     # Setup the environment
     env = NudgeBaseEnv.from_name(environment, mode=algorithm, **env_kwargs)
 
@@ -121,7 +123,7 @@ def load_model(model_dir,
         except KeyError:
             reasoner = "nsfr"
         model = BlenderActorCritic(env, rules=rules, actor_mode=config["actor_mode"], blender_mode=config["blender_mode"], \
-            blend_function=config["blend_function"], reasoner=reasoner, device=device, explain=explain).to(device)
+            blend_function=config["blend_function"], reasoner=reasoner, device=device, explain=explain, mlp_actor=mlp_actor).to(device)
 
     # Load the model weights
     with open(checkpoint_path, "rb") as f:

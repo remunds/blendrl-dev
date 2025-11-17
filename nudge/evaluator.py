@@ -102,11 +102,7 @@ class Evaluator:
 
         episode_count = 0
         step_count = 0
-        returns = []
-        lengths = []
         blend_entropies = []
-        episodic_reward = 0
-        episodic_rewards = []
 
         runs = range(self.episodes)
         while self.running:
@@ -120,7 +116,8 @@ class Evaluator:
                     # assert False, "Unimplemented."
                     action = self._get_action()
                 else:  # AI plays the game
-                    # print("obs_nn: ", obs_nn.shape)
+                    obs_nn = obs_nn.to(th.float32)
+                    obs = obs.to(th.float32)
                     action, logprob = self.model.act(
                         obs_nn, obs
                     )  # update the model's internals
@@ -137,7 +134,6 @@ class Evaluator:
                 (new_obs, new_obs_nn), reward, done, terminations, infos = (
                     self.env.step(action, is_mapped=self.takeover)
                 )
-                episodic_reward += reward
                 if reward > 0:
                     print(f"Reward: {reward:.2f} at Step {step_count}")
                 new_obs_nn = th.tensor(new_obs_nn, device=self.model.device)
@@ -159,75 +155,27 @@ class Evaluator:
                 length += 1
 
                 if terminations:
-                    if "final_info" in infos:  # or next_done.any():
-                        info = infos["final_info"]
-                        # final_info = info['final_info']
-                        if "episode" in info:
-                            ret = info["episode"]["r"][0]
-                            length = info["episode"]["l"][0]
-                            print(
-                                f"Episode {episode_count} - Return: {ret} - Length {length}"
-                            )
-                            episode_count += 1
-                            returns.append(ret)
-                            lengths.append(length)
-                            print("Steps: ", step_count)
+                    print("Episode terminated.")
+                    game_return = infos["returned_episode_env_returns"].mean().item()
+                    blendrl_return = infos["returned_episode_returns_0"].mean().item()
+                    length = infos["returned_episode_lengths"].mean().item()
+                    print(
+                        f"Game Return: {game_return:.2f}, BlendRL Return: {blendrl_return:.2f}, Length: {length}"
+                    )
+                    episode_count += 1
                     if episode_count >= self.episodes:
                         break
                     self.env.reset()
                     # for self tracking
                     print("Terminate episode at time step: ", step_count)
-                    episodic_rewards.append(episodic_reward)
-                    episodic_reward = 0
-                    step_count = 0
-                    # episode_count += 1
-                    print("Episodic Rewards: ", episodic_rewards)
-                    print("Starting new episode")
 
                 if step_count > 10000:
                     print("Terminate episode at time step: ", step_count)
-                    episodic_rewards.append(episodic_reward)
-                    episodic_reward = 0
-                    step_count = 0
-                    episode_count += 1
-                    print("Episodic Rewards: ", episodic_rewards)
-                    print("Starting new episode")
                     self.env.reset()
                     if episode_count >= self.episodes:
                         break
 
         # compute mean and std
-        mean_returns = np.mean(np.array(returns))
-        std_returns = np.std(np.array(returns))
-        mean_episodic_reward = np.mean(np.array(episodic_reward))
-        std_episodic_reward = np.std(np.array(episodic_reward))
-        mean_lengths = np.mean(np.array(lengths))
-        std_lengths = np.std(np.array(lengths))
-        mean_bents = np.round(np.mean(np.array(blend_entropies)), 3)
-        std_bents = np.round(np.std(np.array(blend_entropies)), 3)
-        # save the returns and lengths to a pickle file
-        import pickle
-
-        if "blender_neural" in self.agent_path:
-            blender_mode = "neural"
-        else:
-            blender_mode = "logic"
-        with open(
-            f"out/eval/{self.env_name}_{blender_mode}_episodic_rewards.pkl", "wb"
-        ) as f:
-            print(f"Episodic Rewards: {mean_episodic_reward} ± {std_episodic_reward}")
-            pickle.dump((mean_episodic_reward, std_episodic_reward), f)
-        with open(f"out/eval/{self.env_name}_{blender_mode}_returns.pkl", "wb") as f:
-            print(f"Returns: {mean_returns} ± {std_returns}")
-            pickle.dump((mean_returns, std_returns), f)
-        with open(f"out/eval/{self.env_name}_{blender_mode}_lengths.pkl", "wb") as f:
-            print(f"Lengths: {mean_lengths} ± {std_lengths}")
-            pickle.dump((mean_lengths, std_lengths), f)
-        with open(
-            f"out/eval/{self.env_name}_{blender_mode}_blend_entropies.pkl", "wb"
-        ) as f:
-            print(f"Blend Entropies: {mean_bents} ± {std_bents}")
-            pickle.dump((blend_entropies, mean_bents, std_bents), f)
 
         # pygame.quit()
 
