@@ -58,7 +58,7 @@ class Args:
     env_id: str = "Seaquest-v4"
     """the id of the environment"""
     # total_timesteps: int = 60000000
-    total_timesteps: int = 20_000_000
+    total_timesteps: int = 50_000_000
     """total timesteps of the experiments"""
     # num_envs: int = 20
     num_envs: int = 512

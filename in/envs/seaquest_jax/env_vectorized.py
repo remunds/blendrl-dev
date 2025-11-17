@@ -88,6 +88,7 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
     def _seaquest_observation_to_array(self, obs):
         def entity_array_to_nudge(array):
             # array: (b, N, 4)
+            # else to 1
             active = array[..., 4]
             x = array[..., 0]
             y = array[..., 1]

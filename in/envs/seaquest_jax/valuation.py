@@ -41,14 +41,16 @@ def visible_diver(obj: th.Tensor) -> th.Tensor:
     result = obj[..., 0] == 1
     return bool_to_probs(result)
 
-
+# Adapted directions to jaxatari: 1==right, -1==left
 def facing_left(player: th.Tensor) -> th.Tensor:
-    result = player[..., 3] == 12
+    # result = player[..., 3] == 12
+    result = player[..., 3] == -1
     return bool_to_probs(result)
 
 
 def facing_right(player: th.Tensor) -> th.Tensor:
-    result = player[..., 3] == 4
+    # result = player[..., 3] == 4
+    result = player[..., 3] == 1
     return bool_to_probs(result)
 
 

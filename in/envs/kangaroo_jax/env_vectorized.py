@@ -143,7 +143,6 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         
         # thrown_coco
         # Note: only first 3 coconuts are kept for now (there are max 4 in jaxatari)
-        print(obs.coco_positions.shape)  # --- IGNORE ---
         final_obs = final_obs.at[7:10].set(_position_arr_to_nudge(obs.coco_positions)[:3])
         
         # fruit
