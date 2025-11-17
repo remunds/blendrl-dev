@@ -9,7 +9,7 @@ false = Atom(p_, [Const('__F__', dtype=DataType('spec'))])
 true = Atom(p_, [Const('__T__', dtype=DataType('spec'))])
 
 
-def get_lang(lark_path, lang_base_path, dataset):
+def get_lang(lark_path, lang_base_path, dataset, diff_claus_file=None):
     """Load the language of first-order logic from files.
 
     Read the language, clauses, background knowledge from files.
@@ -17,7 +17,7 @@ def get_lang(lark_path, lang_base_path, dataset):
     """
     du = DataUtils(lark_path=lark_path, lang_base_path=lang_base_path, dataset=dataset)
     lang = du.load_language()
-    clauses = du.get_clauses(lang)
+    clauses = du.get_clauses(lang, diff_claus_file)
     bk = du.get_bk(lang)
     atoms = generate_atoms(lang)
     return lang, clauses, bk, atoms

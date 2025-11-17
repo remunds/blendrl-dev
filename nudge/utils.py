@@ -168,7 +168,10 @@ def load_model_train(model_dir,
     if algorithm == 'ppo':
         model = ActorCritic(env).to(device)
     elif algorithm == 'logic':
-        model = NsfrActorCritic(env, device=device, rules=rules).to(device)
+        clause_file = None
+        if "clause_file" in config:
+            clause_file = config["clause_file"]
+        model = NsfrActorCritic(env, device=device, rules=rules, diff_claus_file=clause_file).to(device)
     else:
         model = BlenderActorCritic(env, rules=rules, actor_mode=config["actor_mode"], blender_mode=config["blender_mode"], blend_function=config["blend_function"], device=device).to(device)
 

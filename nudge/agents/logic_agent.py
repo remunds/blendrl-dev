@@ -14,12 +14,12 @@ from nudge.torch_utils import softor
 
 
 class NsfrActorCritic(nn.Module):
-    def __init__(self, env: NudgeBaseEnv, rules: str, device, rng=None):
+    def __init__(self, env: NudgeBaseEnv, rules: str, device, rng=None, diff_claus_file=None):
         super(NsfrActorCritic, self).__init__()
         self.device =device
         self.rng = random.Random() if rng is None else rng
         self.env = env
-        self.actor = get_nsfr_model(env.name, rules, device=device, train=True)
+        self.actor = get_nsfr_model(env.name, rules, device=device, train=True, diff_claus_file=diff_claus_file)
         self.prednames = self.get_prednames()
 
         mlp_module_path = f"in/envs/{self.env.name}/mlp.py"

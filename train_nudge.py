@@ -127,6 +127,8 @@ class Args:
     """coefficient of the blend entropy"""
     recover: bool = False
     """recover the training from the last checkpoint"""
+    clause_file: str | None = None
+    """the clause file name to use for logic agent: e.g. clauses_nudge for seaquest_jax"""
 
 
 def main():
@@ -174,8 +176,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     envs = VectorizedNudgeBaseEnv.from_name(args.env_name, n_envs=args.num_envs, mode=args.algorithm, seed=args.seed)#$, **env_kwargs)
-
-    agent = NsfrActorCritic(envs, args.rules, device)
+    agent = NsfrActorCritic(envs, args.rules, device, diff_claus_file=args.clause_file)
     if args.pretrained:
         # load neural agent weights
         agent.visual_neural_actor.load_state_dict(torch.load("models/neural_ppo_agent_Seaquest-v4.pth"))

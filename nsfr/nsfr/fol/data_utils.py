@@ -117,7 +117,9 @@ class DataUtils(object):
         tree = self.lp_clause.parse(clause_str)
         return ExpTree(lang).transform(tree)
 
-    def get_clauses(self, lang):
+    def get_clauses(self, lang, diff_claus_file=None):
+        if diff_claus_file is not None:
+            return self.load_clauses(self.base_path + diff_claus_file, lang)
         return self.load_clauses(self.base_path + 'clauses.txt', lang)
 
     def get_meta_clauses(self, lang):
