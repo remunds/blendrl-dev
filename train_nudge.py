@@ -1,3 +1,4 @@
+import datetime
 import os
 import random
 import time
@@ -140,7 +141,8 @@ def main():
     args.num_iterations = args.total_timesteps // args.batch_size
     model_description = "{}".format(args.blend_function)
     learning_description = f"lr_{args.learning_rate}_llr_{args.logic_learning_rate}_gamma_{args.gamma}_numenvs_{args.num_envs}_steps_{args.num_steps}"
-    run_name = f"{args.env_name}_{model_description}_{learning_description}_{args.seed}"
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_name = f"{args.env_name}_{model_description}_{learning_description}_{args.seed}_{timestamp}"
     if args.track:
         wandb.init(
             project=args.wandb_project_name + "_" + args.env_name,

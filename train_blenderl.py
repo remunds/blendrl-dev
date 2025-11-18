@@ -1,4 +1,5 @@
 import os
+import datetime
 import random
 import time
 from dataclasses import dataclass
@@ -149,7 +150,8 @@ def main():
     args.num_iterations = args.total_timesteps // args.batch_size
     model_description = "{}_blender_{}".format(args.blend_function, args.blender_mode)
     learning_description = f"lr_{args.learning_rate}_llr_{args.logic_learning_rate}_blr_{args.blender_learning_rate}_gamma_{args.gamma}_bentcoef_{args.blend_ent_coef}_numenvs_{args.num_envs}_steps_{args.num_steps}_"
-    run_name = f"{args.env_name}_{model_description}_{learning_description}_{args.seed}"
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_name = f"{args.env_name}_{model_description}_{learning_description}_{args.seed}_{timestamp}"
     if args.track:
         wandb.init(
             project=args.wandb_project_name + "_" + args.env_name,
