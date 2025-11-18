@@ -23,7 +23,7 @@ class ActorCritic(nn.Module):
         self.actor = module.MLP(device=device, has_softmax=True)
         self.critic = module.MLP(device=device, has_softmax=False, out_size=1)
 
-        self.n_actions = self.env.n_actions()
+        self.n_actions = self.env.n_actions
         self.uniform = Categorical(
             torch.tensor([1.0 / self.n_actions for _ in range(3)], device=device))
 

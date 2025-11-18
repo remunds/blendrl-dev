@@ -13,7 +13,8 @@ import gymnasium as gym
 import jax
 import jax.numpy as jnp
 import numpy as np
-from jaxatari.games.jax_kangaroo import JaxKangaroo
+from jaxatari.games.jax_kangaroo import JaxKangaroo, KangarooState, get_level_constants
+from jaxatari.games.mods.kangaroo_mods import DisableThreadsWrapper
 from jaxatari.wrappers import AtariWrapper, MultiRewardLogWrapper
 
 import time
@@ -26,6 +27,45 @@ def blendrl_reward_function(prev_state, state) -> float:
     cond = jnp.logical_and(state.player.y <= 10, prev_state.player.y > 4) # near the top
     reward = jnp.where(cond, 20.0, jnp.where(org_reward >= 1.0, 1.0, 0.0))
     return reward
+
+def unpack(state):
+    while not isinstance(state, KangarooState):
+        if hasattr(state, 'atari_state'):
+            state = state.atari_state
+        elif hasattr(state, 'env_state'):
+            state = state.env_state
+        else:
+            raise ValueError("State is not a PongState or does not contain a PongState.")
+    return state
+
+def reached_platform_level(prev_state, state) -> jnp.ndarray:
+    state = unpack(state)
+    prev_state = unpack(prev_state)
+    # return +1 for each new platform height reached
+    player_bottom_y = state.player.y + state.player.height
+    prev_player_bottom_y = prev_state.player.y + prev_state.player.height
+    # level_constants = JaxKangaroo()._get_level_constants(state.current_level)
+    level_constants = get_level_constants(state.current_level)
+    platform_positions_y = level_constants.platform_positions[..., 1]
+    filter_first = jnp.where(platform_positions_y >= 172, 0, 1) # bottom platform is at 172
+    player_over_platform = player_bottom_y <= platform_positions_y
+    prev_player_over_platform = prev_player_bottom_y <= platform_positions_y
+    reached_platforms = jnp.sum(jnp.logical_and(
+        player_over_platform,
+        filter_first,
+    ), axis=-1)
+    prev_reached_platforms = jnp.sum(jnp.logical_and(
+        prev_player_over_platform,
+        filter_first,
+    ), axis=-1)
+
+    # new reached
+    new_reached = jnp.where(reached_platforms > prev_reached_platforms, 1, 0)
+    filter_crashed = jnp.logical_or(
+        state.player.is_crashing,
+        prev_state.player.is_crashing,
+    )
+    return jnp.where(filter_crashed, 0, new_reached).astype(jnp.float32)
 
 class NudgeEnv(NudgeBaseEnv):
     """
@@ -56,6 +96,8 @@ class NudgeEnv(NudgeBaseEnv):
         render_mode="rgb_array",
         render_oc_overlay=False,
         seed=0,
+        modified_env=False,
+        episodic_life=True 
     ):
         """
         Constructor for the VectorizedNudgeEnv class.
@@ -70,14 +112,16 @@ class NudgeEnv(NudgeBaseEnv):
         super().__init__(mode)
         # set up multiple envs
 
-        env = JaxKangaroo(reward_funcs=[blendrl_reward_function])
+        env = JaxKangaroo(reward_funcs=[blendrl_reward_function, reached_platform_level])
+        if modified_env:
+            env = DisableThreadsWrapper(env)
     
         #TODO: For actual BlendRL style, we should use ObjectCentricAndPixelObsWrapper
         # then feed pixel as neural state and oc as logic state
         # But: for fair comparison with NEXUS, we keep only OC observations
         env = AtariWrapper(
             env,
-            episodic_life=True, # explicitly set in cleanRL-envpool
+            episodic_life=episodic_life, # explicitly set in cleanRL-envpool
             clip_reward=False, 
             max_episode_length=108000,
             frame_stack_size=4,

@@ -10,7 +10,8 @@ import jax
 import jax.numpy as jnp
 import jaxatari
 import numpy as np
-from jaxatari.games.jax_seaquest import JaxSeaquest
+from jaxatari.games.jax_seaquest import JaxSeaquest, SeaquestState
+from jaxatari.games.mods.seaquest_mods import DisableEnemiesWrapper
 from jaxatari.wrappers import AtariWrapper, ObjectCentricWrapper, MultiRewardLogWrapper
 from nsfr.nsfr.fol import logic
 
@@ -21,6 +22,15 @@ def blendrl_reward_function(prev_state, state) -> float:
     reward = jnp.where(cond, 0.5, jnp.where(cond2, 1.0, 0.0))
     return reward
 
+@jax.jit
+def total_collected(prev_state: SeaquestState, state: SeaquestState):
+    # return 1 if player is at surface with 6 divers
+    reward = jnp.where(
+        state.divers_collected > prev_state.divers_collected,
+        1.0,
+        0.0
+    )
+    return reward 
 
 class NudgeEnv(NudgeBaseEnv):
     name = "seaquest_jax"
@@ -40,17 +50,21 @@ class NudgeEnv(NudgeBaseEnv):
         render_mode="rgb_array",
         render_oc_overlay=False,
         seed=0,
+        modified_env=False,
+        episodic_life=True
     ):
         super().__init__(mode)
         # set up multiple envs
-        env = JaxSeaquest(reward_funcs=[blendrl_reward_function])
+        env = JaxSeaquest(reward_funcs=[blendrl_reward_function, total_collected])
+        if modified_env:
+            env = DisableEnemiesWrapper(env)
     
         #TODO: For actual BlendRL style, we should use ObjectCentricAndPixelObsWrapper
         # then feed pixel as neural state and oc as logic state
         # But: for fair comparison with NEXUS, we keep only OC observations
         env = AtariWrapper(
             env,
-            episodic_life=True, # explicitly set in cleanRL-envpool
+            episodic_life=episodic_life, # explicitly set in cleanRL-envpool
             clip_reward=False, 
             max_episode_length=108000,
             frame_stack_size=4,

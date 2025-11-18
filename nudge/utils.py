@@ -111,17 +111,25 @@ def load_model(model_dir,
 
     rules = config["rules"]
 
+    algo = config["exp_name"].split("_")[1] # nudge or blenderl
     print("Loading...")
+    print("algorithm:", algorithm)
     # Initialize the model
-    if algorithm == 'ppo':
+    # if algorithm == 'ppo':
+    #     model = ActorCritic(env).to(device)
+    # elif algorithm == 'logic':
+    #     model = NsfrActorCritic(env, device=device, rules=rules).to(device)
+    if algo == 'ppo':
         model = ActorCritic(env).to(device)
-    elif algorithm == 'logic':
-        model = NsfrActorCritic(env, device=device, rules=rules).to(device)
+    elif algo == 'nudge':
+        print("starting nudge")
+        model = NsfrActorCritic(env, device=device, rules=rules, diff_claus_file=config.get("clause_file", None)).to(device)
     else:
         try:
             reasoner = config["reasoner"]
         except KeyError:
             reasoner = "nsfr"
+        print("starting blenderl")
         model = BlenderActorCritic(env, rules=rules, actor_mode=config["actor_mode"], blender_mode=config["blender_mode"], \
             blend_function=config["blend_function"], reasoner=reasoner, device=device, explain=explain, mlp_actor=mlp_actor).to(device)
 
@@ -230,8 +238,11 @@ def print_program_nsfr(actor, mode):
         Ws_softmaxed = torch.softmax(nsfr.im.W, 1)
         for i, W_ in enumerate(Ws_softmaxed):
             max_i = np.argmax(W_.detach().cpu().numpy())
+            # print('C_' + str(i) + ': ',
+            #       C[max_i], 'W_' + str(i) + ':', round(W_[max_i].detach().cpu().item(), 3))
+            # Adapted by me, think it was a mistake
             print('C_' + str(i) + ': ',
-                  C[max_i], 'W_' + str(i) + ':', round(W_[max_i].detach().cpu().item(), 3))
+                  C[i], 'W_' + str(i) + ':', round(W_[max_i].detach().cpu().item(), 3))
     elif mode == "softor":
         W_softmaxed = torch.softmax(nsfr.im.W, 1)
         w = softor(W_softmaxed, dim=0)

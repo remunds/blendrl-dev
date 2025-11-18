@@ -1,18 +1,15 @@
 import functools
 from typing import Sequence
+
 from blendrl.env_vectorized import VectorizedNudgeBaseEnv
-from blendrl.env_utils import make_env
 import torch
-from ocatari.ram.seaquest import MAX_NB_OBJECTS
 import gymnasium as gym
-from hackatari.core import HackAtari
 import jax
 import jax.numpy as jnp
 import jaxatari
 import numpy as np
 from jaxatari.games.jax_seaquest import JaxSeaquest
 from jaxatari.wrappers import AtariWrapper, ObjectCentricWrapper, MultiRewardLogWrapper
-from nsfr.nsfr.fol import logic
 
 def blendrl_reward_function(prev_state, state) -> float:
     org_reward = state.score - prev_state.score
@@ -20,7 +17,6 @@ def blendrl_reward_function(prev_state, state) -> float:
     cond2 = jnp.logical_and(org_reward > 0.0, jnp.isin(state.player_y, jnp.array([44, 45, 46, 47])))
     reward = jnp.where(cond, 0.5, jnp.where(cond2, 1.0, 0.0))
     return reward
-
 
 class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
     name = "seaquest_jax"

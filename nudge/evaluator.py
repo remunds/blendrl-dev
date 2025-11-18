@@ -50,6 +50,9 @@ class Evaluator:
         self.agent_path = agent_path
         self.env_name = env_name
 
+        # Turn off episodic life for evaluation
+        # env_kwargs["episodic_life"] = False
+
         # Load model and environment
         self.model = load_model(
             agent_path, env_kwargs_override=env_kwargs, device=device
@@ -83,7 +86,7 @@ class Evaluator:
             self.keys2actions = {}
         self.current_keys_down = set()
 
-        self.predicates = self.model.logic_actor.prednames
+        # self.predicates = self.model.logic_actor.prednames
 
         self.running = True
         self.paused = False
@@ -92,8 +95,6 @@ class Evaluator:
         self.takeover = False
 
     def run(self):
-        length = 0
-        ret = 0
 
         obs, obs_nn = self.env.reset()
         obs_nn = th.tensor(obs_nn, device=self.model.device)
@@ -102,7 +103,10 @@ class Evaluator:
 
         episode_count = 0
         step_count = 0
-        blend_entropies = []
+
+        game_returns = []
+        blendrl_returns = []
+        aligned_scores = []
 
         runs = range(self.episodes)
         while self.running:
@@ -118,20 +122,24 @@ class Evaluator:
                 else:  # AI plays the game
                     obs_nn = obs_nn.to(th.float32)
                     obs = obs.to(th.float32)
-                    action, logprob = self.model.act(
-                        obs_nn, obs
-                    )  # update the model's internals
-                    value = self.model.get_value(obs_nn, obs)
-                    # get blend entropy
-                    _, newlogprob, entropy, blend_entropy, newvalue = (
-                        self.model.get_action_and_value(obs_nn, obs, action)
-                    )
-                    blend_entropies.append(blend_entropy.detach().item())
+                    # action, logprob = self.model.act(
+                    #     obs_nn, obs
+                    if isinstance(self.model, NsfrActorCritic):
+                        action, _, _, _ = self.model.get_action_and_value(
+                            obs_nn, obs
+                        )
+                    else:
+                        action, _, _, _, _ = self.model.get_action_and_value(
+                            obs_nn, obs
+                        )
+                        # action, logprob = self.model.act(
+                        #     obs_nn, obs
+                        # )  # update the model's internals
                     step_count += 1
                     # if step_count > 1000:
                     # break
 
-                (new_obs, new_obs_nn), reward, done, terminations, infos = (
+                (new_obs, new_obs_nn), reward, truncations, dones, infos = (
                     self.env.step(action, is_mapped=self.takeover)
                 )
                 if reward > 0:
@@ -143,40 +151,56 @@ class Evaluator:
                 if self.takeover and float(reward) != 0:
                     print(f"Reward {reward:.2f}")
 
-                if self.reset:
-                    done = True
-                    new_obs = self.env.reset()
-                    # self._render()
-
                 obs = new_obs
                 obs = obs.to(self.model.device)
                 obs_nn = new_obs_nn
                 obs_nn = obs_nn.to(self.model.device)
-                length += 1
 
-                if terminations:
-                    print("Episode terminated.")
+                if dones.any():
+                    print("Episode done.: ", dones)
                     game_return = infos["returned_episode_env_returns"].mean().item()
+                    game_returns.append(game_return)
                     blendrl_return = infos["returned_episode_returns_0"].mean().item()
-                    length = infos["returned_episode_lengths"].mean().item()
-                    print(
-                        f"Game Return: {game_return:.2f}, BlendRL Return: {blendrl_return:.2f}, Length: {length}"
-                    )
+                    blendrl_returns.append(blendrl_return)
+                    ep_length = infos["returned_episode_lengths"].mean().item()
+                    if "returned_episode_returns_1" in infos:
+                        aligned_score = infos["returned_episode_returns_1"].mean().item()
+                        aligned_scores.append(aligned_score)
+                        print(
+                            f"Game Return: {game_return:.2f}, BlendRL Return: {blendrl_return:.2f}, Aligned Score: {aligned_score:.2f}, Length: {ep_length}"
+                        )
+                    else:
+                        print(
+                            f"Game Return: {game_return:.2f}, BlendRL Return: {blendrl_return:.2f}, Length: {ep_length}"
+                        )
                     episode_count += 1
                     if episode_count >= self.episodes:
                         break
-                    self.env.reset()
                     # for self tracking
-                    print("Terminate episode at time step: ", step_count)
+                    print("Done at time step: ", step_count)
+                    step_count = 0
+                    obs, obs_nn = self.env.reset()
+                    obs_nn = th.tensor(obs_nn, device=self.model.device)
+                    obs = obs.to(self.model.device)
 
-                if step_count > 10000:
+                if step_count > 10_000:
                     print("Terminate episode at time step: ", step_count)
-                    self.env.reset()
+                    obs, obs_nn = self.env.reset()
+                    obs_nn = th.tensor(obs_nn, device=self.model.device)
+                    obs = obs.to(self.model.device)
+                    step_count = 0
                     if episode_count >= self.episodes:
                         break
 
         # compute mean and std
-
+        mean_return = np.mean(game_returns)
+        std_return = np.std(game_returns)
+        mean_blendrl_return = np.mean(blendrl_returns)
+        std_blendrl_return = np.std(blendrl_returns)
+        aligned_mean_return = np.mean(aligned_scores) if len(aligned_scores) > 0 else 0
+        aligned_std_return = np.std(aligned_scores) if len(aligned_scores) > 0 else 0
+        return mean_return, std_return, mean_blendrl_return, std_blendrl_return, aligned_mean_return, aligned_std_return 
+        # game_ret, game_std, aligned_ret, aligned_std, mod_game_ret, mod_game_std, mod_aligned_ret, mod_aligned_std
         # pygame.quit()
 
     def _get_action(self):

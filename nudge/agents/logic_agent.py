@@ -41,7 +41,7 @@ class NsfrActorCritic(nn.Module):
         print("==== Logic Policy ====")
         self.actor.print_program()
 
-    def act(self, logic_state, epsilon=0.0):
+    def act(self, neural_state, logic_state, epsilon=0.0):
         action_probs = self.actor(logic_state)
 
         # e-greedy

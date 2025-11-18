@@ -12,6 +12,8 @@ def main(
     episodes: int = 2,
     model: str = "blendrl",
     device: str = "cuda:0",
+    seed: int = 0,
+    modified_env: bool = False,
 ) -> None:
     """
     Evaluation script. This script evaluates the performance of the blendrl on new episodes.
@@ -24,10 +26,11 @@ def main(
         deterministic=False,
         device=device,
         # env_kwargs=dict(render_oc_overlay=True),
-        env_kwargs=dict(render_oc_overlay=False),
+        seed=seed,
+        env_kwargs=dict(render_oc_overlay=False, modified_env=modified_env),
         render_predicate_probs=True,
     )
-    evaluator.run()
+    return evaluator.run()
 
 
 if __name__ == "__main__":

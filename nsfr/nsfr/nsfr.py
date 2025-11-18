@@ -97,7 +97,9 @@ class NSFReasoner(nn.Module):
         for i, W_ in enumerate(Ws_softmaxed):
             max_i = np.argmax(W_.detach().cpu().numpy())
             print('C_' + str(i) + ': ',
-                  C[max_i], 'W_' + str(i) + ':', round(W_[max_i].detach().cpu().item(), 3))
+                # Adapted by me, think it was a mistake
+                #   C[max_i], 'W_' + str(i) + ':', round(W_[max_i].detach().cpu().item(), 3))
+                  C[i], 'W_' + str(i) + ':', round(W_[max_i].detach().cpu().item(), 3))
 
     def print_valuations(self, predicate: str = None, min_value: float = 0,
                          initial_valuation: bool = False):
