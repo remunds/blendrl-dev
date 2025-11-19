@@ -51,7 +51,7 @@ class Evaluator:
         self.env_name = env_name
 
         # Turn off episodic life for evaluation
-        # env_kwargs["episodic_life"] = False
+        env_kwargs["episodic_life"] = False
 
         # Load model and environment
         self.model = load_model(
@@ -177,17 +177,14 @@ class Evaluator:
                     if episode_count >= self.episodes:
                         break
                     # for self tracking
-                    print("Done at time step: ", step_count)
-                    step_count = 0
                     obs, obs_nn = self.env.reset()
                     obs_nn = th.tensor(obs_nn, device=self.model.device)
                     obs = obs.to(self.model.device)
 
-                if step_count > 10_000:
-                    print("Terminate episode at time step: ", step_count)
-                    obs, obs_nn = self.env.reset()
-                    obs_nn = th.tensor(obs_nn, device=self.model.device)
-                    obs = obs.to(self.model.device)
+                    if step_count >= 9_999:
+                        print("Terminated episode at time step: ", step_count)
+                    else:
+                        print("Done at time step: ", step_count)
                     step_count = 0
                     if episode_count >= self.episodes:
                         break

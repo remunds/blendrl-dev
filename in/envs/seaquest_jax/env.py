@@ -66,13 +66,13 @@ class NudgeEnv(NudgeBaseEnv):
             env,
             episodic_life=episodic_life, # explicitly set in cleanRL-envpool
             clip_reward=False, 
-            max_episode_length=108000,
+            max_episode_length=10_000, 
             frame_stack_size=4,
-            max_pooling=True,
+            # max_pooling=True,
             frame_skip=4,
-            noop_reset=30,
+            noop_reset=0,
             sticky_actions=False, 
-            first_fire=True,
+            first_fire=False,
         )
         self.env = MultiRewardLogWrapper(env)
 
