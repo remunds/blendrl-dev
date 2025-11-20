@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import Union
-
+import os
 import numpy as np
 import torch as th
 
 # import pygame
 # import vidmaker
+from moviepy import *
 
 from nudge.agents.logic_agent import NsfrActorCritic
 from nudge.agents.neural_agent import ActorCritic
@@ -107,6 +108,7 @@ class Evaluator:
         game_returns = []
         blendrl_returns = []
         aligned_scores = []
+        frames = []
 
         runs = range(self.episodes)
         while self.running:
@@ -146,6 +148,7 @@ class Evaluator:
                     print(f"Reward: {reward:.2f} at Step {step_count}")
                 new_obs_nn = th.tensor(new_obs_nn, device=self.model.device)
 
+                frames.append(self.env.render())
                 # self._render()
 
                 if self.takeover and float(reward) != 0:
@@ -174,8 +177,18 @@ class Evaluator:
                             f"Game Return: {game_return:.2f}, BlendRL Return: {blendrl_return:.2f}, Length: {ep_length}"
                         )
                     episode_count += 1
-                    if episode_count >= self.episodes:
-                        break
+
+                    # frames = np.array(frames)
+                    # frames = np.transpose(frames, (0, 3, 1, 2))
+                    video = ImageSequenceClip(frames, fps=30)
+                    dir_path = "out/videos/"
+                    if not os.path.exists(dir_path):
+                        os.makedirs(dir_path)
+                    path = dir_path + f"eval_video_{episode_count}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+
+
+                    video.write_videofile(path, fps=30)
+                    frames = []
                     # for self tracking
                     obs, obs_nn = self.env.reset()
                     obs_nn = th.tensor(obs_nn, device=self.model.device)

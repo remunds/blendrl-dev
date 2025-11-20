@@ -10,9 +10,9 @@ import jax
 import jax.numpy as jnp
 import jaxatari
 import numpy as np
-from jaxatari.games.jax_seaquest import JaxSeaquest, SeaquestState
+from jaxatari.games.jax_seaquest import JaxSeaquest, SeaquestRenderer, SeaquestState
 from jaxatari.games.mods.seaquest_mods import DisableEnemiesWrapper
-from jaxatari.wrappers import AtariWrapper, ObjectCentricWrapper, MultiRewardLogWrapper
+from jaxatari.wrappers import AtariWrapper, ObjectCentricWrapper, MultiRewardLogWrapper, PixelObsWrapper
 from nsfr.nsfr.fol import logic
 
 def blendrl_reward_function(prev_state, state) -> float:
@@ -56,6 +56,7 @@ class NudgeEnv(NudgeBaseEnv):
         super().__init__(mode)
         # set up multiple envs
         env = JaxSeaquest(reward_funcs=[blendrl_reward_function, total_collected])
+        self.renderer = SeaquestRenderer()
         if modified_env:
             env = DisableEnemiesWrapper(env)
     
@@ -75,7 +76,6 @@ class NudgeEnv(NudgeBaseEnv):
             first_fire=False,
         )
         self.env = MultiRewardLogWrapper(env)
-
 
         # for learning script from cleanrl
         self.n_actions = 6
@@ -165,6 +165,10 @@ class NudgeEnv(NudgeBaseEnv):
             dones,
             infos,
         )
+    
+    def render(self ):
+        return self.renderer.render(self.state.atari_state.env_state)
+
 
     def close(self):
         pass

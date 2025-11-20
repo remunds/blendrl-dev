@@ -3,23 +3,23 @@ from evaluate import main as evaluate
 import numpy as np
 
 # NUDGE
-# evals = {
-#     "kangaroo_jax_0": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_0",
+evals = {
+    # "kangaroo_jax_0": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_0",
 #     "kangaroo_jax_1": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_1_20251118_113300",
-#     "kangaroo_jax_2": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+    # "kangaroo_jax_2": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
 #     "seaquest_jax_0": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_0",
 #     "seaquest_jax_1": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_1_20251118_113234",
 #     "seaquest_jax_2": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_140233",
-# }
+}
 
 # BLENDRL
 evals = {
     # "kangaroo_jax_0": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0",
     # "kangaroo_jax_1": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__1_20251118_140348",
-    # "kangaroo_jax_2": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__2_20251118_222638",
-    "seaquest_jax_0": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0",
-    "seaquest_jax_1": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__1_20251118_113132",
-    "seaquest_jax_2": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__2_20251118_140442"
+    "kangaroo_jax_2": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__2_20251118_222638",
+    # "seaquest_jax_0": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0",
+    # "seaquest_jax_1": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__1_20251118_113132",
+    # "seaquest_jax_2": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__2_20251118_140442"
 }
 
 scores = []

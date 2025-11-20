@@ -13,7 +13,7 @@ import gymnasium as gym
 import jax
 import jax.numpy as jnp
 import numpy as np
-from jaxatari.games.jax_kangaroo import JaxKangaroo, KangarooState, get_level_constants
+from jaxatari.games.jax_kangaroo import JaxKangaroo, KangarooState, get_level_constants, KangarooRenderer
 from jaxatari.games.mods.kangaroo_mods import DisableThreadsWrapper
 from jaxatari.wrappers import AtariWrapper, MultiRewardLogWrapper
 
@@ -132,6 +132,7 @@ class NudgeEnv(NudgeBaseEnv):
             first_fire=True,
         )
         self.env = MultiRewardLogWrapper(env)
+        self.renderer = KangarooRenderer()
 
         self.n_actions = 6
         self.n_raw_actions = 18
@@ -237,6 +238,10 @@ class NudgeEnv(NudgeBaseEnv):
             dones,
             infos,
         )
+    
+    def render(self ):
+        return self.renderer.render(self.state.atari_state.env_state)
+
 
     def close(self):
         pass
