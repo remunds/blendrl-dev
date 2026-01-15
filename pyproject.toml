@@ -9,7 +9,8 @@ dependencies = [
     "nsfr",
     "nudge",
     "ocatari",
-    "jaxatari"
+    "jaxatari",
+    "stable-baselines3>=2.7.1",
 ]
 
 [tool.uv.sources]
