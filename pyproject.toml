@@ -5,21 +5,16 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "captum>=0.8.0",
-    "gymnasium[accept-rom-license,atari]>=1.2.3",
-    "hackatari",
-    "ocatari>=2.2.1",
-    "opencv-python==4.5.5.64",
-    "pygame>=2.6.1",
-    "pyyaml>=6.0.3",
-    "rtpt>=0.0.4",
-    "stable-baselines3>=2.7.1",
-    "tensorboard>=2.20.0",
-    "torch==2.4.0",
-    "tyro>=1.0.5",
-    "vidmaker>=2.3.0",
-    "wandb>=0.24.0",
+    "jax>=0.5.3",
+    "nsfr",
+    "nudge",
+    "ocatari",
+    "jaxatari"
 ]
 
 [tool.uv.sources]
-hackatari = { git = "https://github.com/k4ntz/HackAtari.git" }
+ocatari = { git = "https://github.com/k4ntz/OC_Atari" }
+nsfr = {path = "./nsfr", editable = true}
+nudge = {path = "./nudge", editable = true}
+#jaxatari = {git = "https://github.com/k4ntz/JAXAtari"}
+jaxatari = {path = "./JAXAtari", editable = true}
