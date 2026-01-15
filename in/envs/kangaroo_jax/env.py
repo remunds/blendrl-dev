@@ -1,25 +1,16 @@
 import functools
-import time
-from turtle import position
 from typing import Sequence
+import jaxatari
 import torch
 # from HackAtari.hackatari.games import kangaroo
 from nudge.env import NudgeBaseEnv
-from blendrl.env_utils import make_env
-from hackatari.core import HackAtari
-import torch as th
-from ocatari.ram.kangaroo import MAX_ESSENTIAL_OBJECTS
-import gymnasium as gym
 import jax
 import jax.numpy as jnp
 import numpy as np
-from jaxatari.games.jax_kangaroo import JaxKangaroo, KangarooState, get_level_constants, KangarooRenderer
-from jaxatari.games.mods.kangaroo_mods import DisableThreadsWrapper
-from jaxatari.wrappers import AtariWrapper, MultiRewardLogWrapper
+from jaxatari.games.jax_kangaroo import JaxKangaroo, KangarooState
+from jaxatari.wrappers import AtariWrapper, MultiRewardLogWrapper, MultiRewardWrapper, PixelAndObjectCentricWrapper, PixelAndObjectObsWrapper
 
-import time
-
-from blendrl.env_utils import kangaroo_modifs
+game_instance = JaxKangaroo()
 
 def blendrl_reward_function(prev_state, state) -> float:
     org_reward = state.score - prev_state.score
@@ -44,8 +35,8 @@ def reached_platform_level(prev_state, state) -> jnp.ndarray:
     # return +1 for each new platform height reached
     player_bottom_y = state.player.y + state.player.height
     prev_player_bottom_y = prev_state.player.y + prev_state.player.height
-    # level_constants = JaxKangaroo()._get_level_constants(state.current_level)
-    level_constants = get_level_constants(state.current_level)
+    level_constants = game_instance._get_level_constants(state.current_level)
+    # level_constants = get_level_constants(state.current_level)
     platform_positions_y = level_constants.platform_positions[..., 1]
     filter_first = jnp.where(platform_positions_y >= 172, 0, 1) # bottom platform is at 172
     player_over_platform = player_bottom_y <= platform_positions_y
@@ -96,7 +87,7 @@ class NudgeEnv(NudgeBaseEnv):
         render_mode="rgb_array",
         render_oc_overlay=False,
         seed=0,
-        modified_env=False,
+        modified_env=None,
         episodic_life=True 
     ):
         """
@@ -112,11 +103,20 @@ class NudgeEnv(NudgeBaseEnv):
         super().__init__(mode)
         # set up multiple envs
 
-        env = JaxKangaroo(reward_funcs=[blendrl_reward_function, reached_platform_level])
-        if modified_env:
-            env = DisableThreadsWrapper(env)
+        print("Initializing JAXAtari Kangaroo environment...")
+
+        env = jaxatari.make("kangaroo")
+        if modified_env is not None:
+            # modified_env can be "center_ladders", "four_ladders", "flame_trap", "cactus_trap",
+            #  "danger_trap", "tanks", "snakes", "dragons", "replace_coconut_fireball", "replace_coconut_honey_bee",
+            #  "replace_coconut_wasp", "replace_coconut_honey_bee"
+            env = jaxatari.make("kangaroo", mods_config=[f"{modified_env}"])
+            print(f"Using modified Kangaroo environment: {modified_env}.")
+            #NOTE: Use no_danger for NEXUS comparison 
+            # env = jaxatari.make("kangaroo", mods_config=["no_danger"])
+        env = MultiRewardWrapper(env, reward_funcs=[blendrl_reward_function, reached_platform_level])
     
-        #TODO: For actual BlendRL style, we should use ObjectCentricAndPixelObsWrapper
+        #TODO: For actual BlendRL style, we should use PixelAndObjectCentricWrapper 
         # then feed pixel as neural state and oc as logic state
         # But: for fair comparison with NEXUS, we keep only OC observations
         env = AtariWrapper(
@@ -131,8 +131,12 @@ class NudgeEnv(NudgeBaseEnv):
             sticky_actions=False, 
             first_fire=True,
         )
+        #TODO: double check grayscale / resizing
+        # env = PixelAndObjectCentricWrapper(env, do_pixel_resize=True, grayscale=True)
+        env = PixelAndObjectObsWrapper(env)
+        # obs is tuple, first is pixel_stack, second is oc_flat
         self.env = MultiRewardLogWrapper(env)
-        self.renderer = KangarooRenderer()
+        self.renderer = env.renderer
 
         self.n_actions = 6
         self.n_raw_actions = 18
@@ -141,11 +145,11 @@ class NudgeEnv(NudgeBaseEnv):
         orig_key = jax.random.PRNGKey(seed)
         self.key = orig_key 
 
-        # observation space: (4, 180)
-        # logic observation space: (180,)
-        # self.single_observation_space = self.env.reset(self.keys[0])[0].shape
-        self.single_observation_space = jax.vmap(self._kangaroo_observation_to_array)(self.env.reset(self.key)[0]).shape
-        self.single_logic_observation_space = tuple(list(self.single_observation_space)[1:])
+        dummy_obs, dummy_state = self.env.reset(self.key)
+        neural_obs, logic_obs = dummy_obs
+        self.single_logic_observation_space = jax.vmap(self._kangaroo_observation_to_array)(logic_obs)[0].shape
+        self.single_observation_space = neural_obs.shape 
+
         print("Single obs space:", self.single_observation_space)
         print("Single logic obs space:", self.single_logic_observation_space)
 
@@ -209,30 +213,34 @@ class NudgeEnv(NudgeBaseEnv):
         obs, state = self.env.reset(self.key)
         self.state = state
         self.key, _ = jax.random.split(self.key) 
+        neural_obs, logic_obs = obs
         # prob: obs arrays have shape (n_envs, frame_stack)
-        obs = jax.vmap(self._kangaroo_observation_to_array)(obs)
+        logic_obs = jax.vmap(self._kangaroo_observation_to_array)(logic_obs)
         # add batch_dim in front
-        obs = obs[jnp.newaxis, ...]
+        logic_obs = logic_obs[jnp.newaxis, ...]
         # for logic_obs, we take only the last frame (no frame stack)
-        return torch.tensor(np.array(obs[:, -1])), np.array(obs) # Use jaxatari OC-obs directly for both logic and neural state
+        logic_obs = torch.tensor(np.array(logic_obs[:, -1]))
+        neural_obs = np.array(neural_obs)
+        return logic_obs, neural_obs 
 
     def step(self, action, is_mapped: bool = False):
         action = jnp.array(action).squeeze()
         obs, state, rewards, dones, infos = self.env.step(self.state, action)
+        neural_obs, logic_obs = obs
         truncations = jnp.zeros_like(dones).astype(bool)  # jaxatari does not yet support truncations separately
         self.state = state
-        obs = jax.vmap(self._kangaroo_observation_to_array)(obs)
+        logic_obs = jax.vmap(self._kangaroo_observation_to_array)(logic_obs)
         # add batch_dim in front
-        obs = obs[jnp.newaxis, ...]
-        logic_obs = torch.tensor(np.array(obs[:, -1])) 
-        obs = np.array(obs)
+        logic_obs = logic_obs[jnp.newaxis, ...]
+        logic_obs = torch.tensor(np.array(logic_obs[:, -1])) 
+        neural_obs = np.array(neural_obs)
         all_rewards = infos.pop("all_rewards")
         rewards = np.array(all_rewards[0])
         dones = np.array(dones)
         truncations = np.array(truncations)
 
         return (
-            (logic_obs, obs),
+            (logic_obs, neural_obs),
             rewards,
             truncations,
             dones,

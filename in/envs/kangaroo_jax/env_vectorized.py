@@ -13,8 +13,8 @@ import gymnasium as gym
 import jax
 import jax.numpy as jnp
 import numpy as np
-from jaxatari.games.jax_kangaroo import JaxKangaroo
-from jaxatari.wrappers import AtariWrapper, MultiRewardLogWrapper
+import jaxatari
+from jaxatari.wrappers import AtariWrapper, MultiRewardLogWrapper, MultiRewardWrapper, PixelAndObjectObsWrapper
 
 import time
 
@@ -72,9 +72,11 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         # set up multiple envs
         self.n_envs = n_envs
 
-        env = JaxKangaroo(reward_funcs=[blendrl_reward_function])
+        #JaxKangaroo(reward_funcs=[blendrl_reward_function])
+        env = jaxatari.make("kangaroo")
+        env = MultiRewardWrapper(env, reward_funcs=[blendrl_reward_function])
     
-        #TODO: For actual BlendRL style, we should use ObjectCentricAndPixelObsWrapper
+        #TODO: For actual BlendRL style, we should use PixelAndObjectCentricWrapper
         # then feed pixel as neural state and oc as logic state
         # But: for fair comparison with NEXUS, we keep only OC observations
         env = AtariWrapper(
@@ -89,6 +91,10 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
             sticky_actions=False, 
             first_fire=True,
         )
+        #TODO: double check grayscale / resizing
+        # env = PixelAndObjectCentricWrapper(env, do_pixel_resize=True, grayscale=True)
+        env = PixelAndObjectObsWrapper(env)
+        # obs is tuple, first is pixel_stack, second is oc_flat
         self.env = MultiRewardLogWrapper(env)
 
         self.n_actions = 6
@@ -98,11 +104,15 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         orig_key = jax.random.PRNGKey(seed)
         self.keys = jax.random.split(orig_key, n_envs)
 
-        # observation space: (4, 180)
-        # logic observation space: (180,)
-        # self.single_observation_space = self.env.reset(self.keys[0])[0].shape
-        self.single_observation_space = jax.vmap(self._kangaroo_observation_to_array)(self.env.reset(self.keys[0])[0]).shape
-        self.single_logic_observation_space = tuple(list(self.single_observation_space)[1:])
+        dummy_obs, dummy_state = self.env.reset(self.keys[0])
+        neural_obs, logic_obs = dummy_obs
+
+        # Only keep last frame for logic obs (frame stack is not needed for OC)
+        self.single_logic_observation_space = jax.vmap(self._kangaroo_observation_to_array)(logic_obs)[0].shape
+        # self.single_logic_observation_space = tuple(list(self.single_observation_space)[1:])
+        # Should be: (stack, n_features), is: (4, 210, 160, 3)
+        self.single_observation_space = neural_obs.shape 
+
         print("Single obs space:", self.single_observation_space)
         print("Single logic obs space:", self.single_logic_observation_space)
 
@@ -166,10 +176,13 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         obs, state = jax.vmap(self.env.reset)(self.keys)
         self.state = state
         self.keys = jax.random.split(self.keys[0], self.n_envs) 
+        neural_obs, logic_obs = obs
         # prob: obs arrays have shape (n_envs, frame_stack)
-        obs = jax.vmap(jax.vmap(self._kangaroo_observation_to_array))(obs)
+        logic_obs = jax.vmap(jax.vmap(self._kangaroo_observation_to_array))(logic_obs)
         # for logic_obs, we take only the last frame (no frame stack)
-        return torch.tensor(np.array(obs[:, -1])), np.array(obs) # Use jaxatari OC-obs directly for both logic and neural state
+        logic_obs = torch.tensor(np.array(logic_obs[:, -1]))
+        neural_obs = np.array(neural_obs)
+        return logic_obs, neural_obs 
 
     def step(self, actions, is_mapped: bool = False):
         assert (
@@ -179,18 +192,19 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         )
         # need to vmap over both
         obs, state, rewards, dones, infos = jax.vmap(self.env.step)(self.state, jax.numpy.array(actions))
+        neural_obs, logic_obs = obs
         truncations = jnp.zeros_like(dones).astype(bool)  # jaxatari does not yet support truncations separately
         self.state = state
-        obs = jax.vmap(jax.vmap(self._kangaroo_observation_to_array))(obs)
-        logic_obs = torch.tensor(np.array(obs[:, -1])) 
-        obs = np.array(obs)
+        logic_obs = jax.vmap(jax.vmap(self._kangaroo_observation_to_array))(logic_obs)
+        logic_obs = torch.tensor(np.array(logic_obs[:, -1])) 
+        neural_obs = np.array(neural_obs)
         all_rewards = infos.pop("all_rewards")
         rewards = np.array(all_rewards[:, 0])
         dones = np.array(dones)
         truncations = np.array(truncations)
 
         return (
-            (logic_obs, obs),
+            (logic_obs, neural_obs),
             rewards,
             truncations,
             dones,

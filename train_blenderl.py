@@ -102,7 +102,7 @@ class Args:
     """the number of iterations (computed in runtime)"""
 
     # added
-    env_name: str = "seaquest"
+    env_name: str = "kangaroo_jax"
     """the name of the environment"""
     algorithm: str = "blender"
     """the algorithm used in the agent"""

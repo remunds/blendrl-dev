@@ -1,3 +1,8 @@
+# Adapted for baseline exps of BlendRL/Nudge for NEXUS
+For comparability, replace JAXAtari with the fork from https://github.com/remunds/JAXAtari which implements the old version of Kangaroo used in NEXUS.
+Also revert back to 3e70add603c33bfdc9f969a2750459059d51f8c8.
+
+
 ### *Refactoring is undergoing.
 # BlendRL: A Framework for Merging Symbolic and Neural Policies (ICLR 2025)
 [Hikaru Shindo](https://www.hikarushindo.com/), [Quentin Delfosse](https://ml-research.github.io/people/qdelfosse/index.html), [Devendra Singh Dhami](https://sites.google.com/view/devendradhami), [Kristian Kersting](https://ml-research.github.io/people/kkersting/index.html)

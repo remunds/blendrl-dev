@@ -1,19 +1,12 @@
 import functools
 from typing import Sequence
 from nudge.env import NudgeBaseEnv
-from blendrl.env_utils import make_env
-import torch
-from ocatari.ram.seaquest import MAX_NB_OBJECTS
-import gymnasium as gym
-from hackatari.core import HackAtari
 import jax
 import jax.numpy as jnp
 import jaxatari
 import numpy as np
-from jaxatari.games.jax_seaquest import JaxSeaquest, SeaquestRenderer, SeaquestState
-from jaxatari.games.mods.seaquest_mods import DisableEnemiesWrapper
-from jaxatari.wrappers import AtariWrapper, ObjectCentricWrapper, MultiRewardLogWrapper, PixelObsWrapper
-from nsfr.nsfr.fol import logic
+from jaxatari.games.jax_seaquest import SeaquestState
+from jaxatari.wrappers import AtariWrapper, MultiRewardLogWrapper, PixelAndObjectObsWrapper, MultiRewardWrapper
 
 def blendrl_reward_function(prev_state, state) -> float:
     org_reward = state.score - prev_state.score
@@ -50,15 +43,18 @@ class NudgeEnv(NudgeBaseEnv):
         render_mode="rgb_array",
         render_oc_overlay=False,
         seed=0,
-        modified_env=False,
+        modified_env=None,
         episodic_life=True
     ):
         super().__init__(mode)
         # set up multiple envs
-        env = JaxSeaquest(reward_funcs=[blendrl_reward_function, total_collected])
-        self.renderer = SeaquestRenderer()
-        if modified_env:
-            env = DisableEnemiesWrapper(env)
+        # env = JaxSeaquest(reward_funcs=[blendrl_reward_function, total_collected])
+        env = jaxatari.make("seaquest")
+        if modified_env is not None:
+            env = jaxatari.make("seaquest", mods_config=[f"{modified_env}"])
+            print(f"Using modified seaquest env with mod: {modified_env}")
+
+        env = MultiRewardWrapper(env, reward_funcs=[blendrl_reward_function, total_collected])
     
         #TODO: For actual BlendRL style, we should use ObjectCentricAndPixelObsWrapper
         # then feed pixel as neural state and oc as logic state
@@ -75,7 +71,9 @@ class NudgeEnv(NudgeBaseEnv):
             sticky_actions=False, 
             first_fire=False,
         )
+        env = PixelAndObjectObsWrapper(env)
         self.env = MultiRewardLogWrapper(env)
+        self.renderer = env.renderer 
 
         # for learning script from cleanrl
         self.n_actions = 6
@@ -85,11 +83,12 @@ class NudgeEnv(NudgeBaseEnv):
         self.n_objects = 37
         self.n_features = 4  # visible, x-pos, y-pos, right-facing
         self.key = jax.random.PRNGKey(seed)
-        # observation space: (4, 180)
-        # logic observation space: (180,)
-        # self.single_observation_space = self.env.reset(self.keys[0])[0].shape
-        self.single_observation_space = jax.vmap(self._seaquest_observation_to_array)(self.env.reset(self.key)[0]).shape
-        self.single_logic_observation_space = tuple(list(self.single_observation_space)[1:])
+        
+        dummy_obs = self.env.reset(self.key)[0]
+        neural_obs, logic_obs = dummy_obs
+        self.single_logic_observation_space = jax.vmap(self._seaquest_observation_to_array)(logic_obs)[0].shape
+        self.single_observation_space = neural_obs.shape
+
         print("Single obs space:", self.single_observation_space)
         print("Single logic obs space:", self.single_logic_observation_space)
 
@@ -137,11 +136,12 @@ class NudgeEnv(NudgeBaseEnv):
         obs, state = self.env.reset(self.key)
         self.state = state
         self.key, _ = jax.random.split(self.key)
+        neural_obs, logic_obs = obs
         # prob: obs arrays have shape (n_envs, frame_stack)
-        obs = jax.vmap(self._seaquest_observation_to_array)(obs)
-        obs = obs[jnp.newaxis, ...]
+        logic_obs = jax.vmap(self._seaquest_observation_to_array)(logic_obs)
+        logic_obs = logic_obs[jnp.newaxis, ...]
         # for logic_obs, we take only the last frame (no frame stack)
-        return torch.tensor(np.array(obs[:, -1])), np.array(obs) # Use jaxatari OC-obs directly for both logic and neural state
+        return torch.tensor(np.array(logic_obs[:, -1])), np.array(neural_obs) # Use jaxatari OC-obs directly for both logic and neural state
 
     def step(self, action, is_mapped: bool = False):
         # need to vmap over both
@@ -149,17 +149,18 @@ class NudgeEnv(NudgeBaseEnv):
         obs, state, rewards, dones, infos = self.env.step(self.state, action)
         truncations = jnp.zeros_like(dones).astype(bool)  # jaxatari does not yet support truncations separately
         self.state = state
-        obs = jax.vmap(self._seaquest_observation_to_array)(obs)
-        obs = obs[jnp.newaxis, ...]
-        logic_obs = torch.tensor(np.array(obs[:, -1])) 
-        obs = np.array(obs)
+        neural_obs, logic_obs = obs
+        logic_obs = jax.vmap(self._seaquest_observation_to_array)(logic_obs)
+        logic_obs = logic_obs[jnp.newaxis, ...]
+        logic_obs = torch.tensor(np.array(logic_obs[:, -1])) 
+        neural_obs = np.array(neural_obs)
         all_rewards = infos.pop("all_rewards")
         rewards = np.array(all_rewards[0])
         dones = np.array(dones)
         truncations = np.array(truncations)
 
         return (
-            (logic_obs, obs),
+            (logic_obs, neural_obs),
             rewards,
             truncations,
             dones,

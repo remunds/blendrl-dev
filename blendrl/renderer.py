@@ -76,7 +76,7 @@ class Renderer:
             self.keys2actions = {}
         self.current_keys_down = set()
 
-        self.predicates = self.model.logic_actor.prednames
+        self.predicates = self.model.get_prednames()
 
         self._init_pygame()
 
