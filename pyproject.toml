@@ -16,5 +16,4 @@ dependencies = [
 ocatari = { git = "https://github.com/k4ntz/OC_Atari" }
 nsfr = {path = "./nsfr", editable = true}
 nudge = {path = "./nudge", editable = true}
-#jaxatari = {git = "https://github.com/k4ntz/JAXAtari"}
-jaxatari = {path = "./JAXAtari", editable = true}
+jaxatari = {git = "https://github.com/k4ntz/JAXAtari"}
