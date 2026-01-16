@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.13' and platform_machine == 'arm64' and sys_platform == 'darwin'",
@@ -114,10 +114,10 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "jax", specifier = ">=0.5.3" },
-    { name = "jaxatari", git = "https://github.com/k4ntz/JAXAtari" },
+    { name = "jaxatari", git = "ssh://git@github.com/k4ntz/JAXAtari?tag=cf7f80f" },
     { name = "nsfr", editable = "nsfr" },
     { name = "nudge", editable = "nudge" },
-    { name = "ocatari", git = "https://github.com/k4ntz/OC_Atari" },
+    { name = "ocatari", git = "ssh://git@github.com/k4ntz/OC_Atari?tag=99c8746" },
     { name = "stable-baselines3", specifier = ">=2.7.1" },
 ]
 
@@ -908,7 +908,7 @@ wheels = [
 [[package]]
 name = "jaxatari"
 version = "0.1.0"
-source = { git = "https://github.com/k4ntz/JAXAtari#cf7f80f551dc6f7b704f2954a4e5fc2a6931e6b9" }
+source = { git = "ssh://git@github.com/k4ntz/JAXAtari?tag=cf7f80f#cf7f80f551dc6f7b704f2954a4e5fc2a6931e6b9" }
 dependencies = [
     { name = "absl-py" },
     { name = "ale-py" },
@@ -1618,6 +1618,7 @@ dependencies = [
     { name = "pygame" },
     { name = "pyyaml" },
     { name = "rtpt" },
+    { name = "stable-baselines3" },
     { name = "tensorboard" },
     { name = "torch" },
     { name = "tyro" },
@@ -1635,6 +1636,7 @@ requires-dist = [
     { name = "pygame" },
     { name = "pyyaml" },
     { name = "rtpt" },
+    { name = "stable-baselines3" },
     { name = "tensorboard" },
     { name = "torch", specifier = "==2.4.0" },
     { name = "tyro" },
@@ -1793,7 +1795,7 @@ wheels = [
 [[package]]
 name = "ocatari"
 version = "2.2.2"
-source = { git = "https://github.com/k4ntz/OC_Atari#99c874675df6b76a33a80b57776c123fbcd051af" }
+source = { git = "ssh://git@github.com/k4ntz/OC_Atari?tag=99c8746#99c874675df6b76a33a80b57776c123fbcd051af" }
 dependencies = [
     { name = "gymnasium" },
     { name = "keyboard" },

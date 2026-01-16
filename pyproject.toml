@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-ocatari = { git = "https://github.com/k4ntz/OC_Atari" }
 nsfr = {path = "./nsfr", editable = true}
 nudge = {path = "./nudge", editable = true}
-jaxatari = {git = "https://github.com/k4ntz/JAXAtari"}
+jaxatari = { git = "ssh://git@github.com/k4ntz/JAXAtari", tag = "cf7f80f" }
+ocatari = { git = "ssh://git@github.com/k4ntz/OC_Atari", tag = "99c8746" }
