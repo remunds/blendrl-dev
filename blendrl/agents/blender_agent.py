@@ -193,14 +193,16 @@ class BlenderActor(nn.Module):
         logic_action_probs = self.to_action_distribution(self.logic_actor(logic_state))
 
         # keep batch_size dimension
-        neural_state_flat = neural_state.view(neural_state.size(0), -1)
-        neural_action_probs = self.to_neural_action_distribution(neural_state_flat)
+        #TODO: if conv -> don't flatten, if MLP -> flatten 
+        # neural_state = neural_state.view(neural_state.size(0), -1)
+        neural_action_probs = self.to_neural_action_distribution(neural_state)
         self.logic_action_probs = logic_action_probs
         self.neural_action_probs = neural_action_probs
         # action_probs size : B * N_actions
-        batch_size = neural_state_flat.size(0)
+        # batch_size = neural_state.size(0)
+
         # weights size: B * 2
-        weights = self.to_blender_policy_distribution(neural_state_flat, logic_state)
+        weights = self.to_blender_policy_distribution(neural_state, logic_state)
         # save weights: w1 and w2
         self.w_policy = weights[0]
         n_actions = neural_action_probs.size(1)
@@ -421,8 +423,7 @@ class BlenderActorCritic(nn.Module):
         self.explain = explain
         mlp_module_path = f"in/envs/{self.env.name}/mlp.py"
         module = load_module(mlp_module_path)
-        input_dim = np.prod(env.single_observation_space)
-        self.visual_neural_actor = load_cleanrl_agent(pretrained=False, device=device, cnn=(not mlp_actor), input_dim=input_dim)
+        self.visual_neural_actor = load_cleanrl_agent(pretrained=False, device=device, cnn=(not mlp_actor), observation_space=env.single_observation_space)
         if reasoner == "neumann":
             from neumann.common import get_neumann_model
             self.logic_actor = get_neumann_model(
@@ -566,8 +567,9 @@ class BlenderActorCritic(nn.Module):
         # Compute action probabilities using blenderl actor
         # size: n_envs * n_actions
         # keep batch_size dimension
-        neural_state_flat = neural_state.view(neural_state.size(0), -1)
-        action_probs, blending_weights = self.actor(neural_state_flat, logic_state)
+        # TODO: if conv -> don't flatten, if MLP -> flatten
+        # neural_state = neural_state.view(neural_state.size(0), -1)
+        action_probs, blending_weights = self.actor(neural_state, logic_state)
         dist = Categorical(action_probs)
         blend_dist = Categorical(blending_weights)
         if action is None:
@@ -576,7 +578,7 @@ class BlenderActorCritic(nn.Module):
 
         # Compute state values using each neural and logic value function
         # size: n_envs * 1
-        neural_value = self.get_neural_value(neural_state_flat)
+        neural_value = self.get_neural_value(neural_state)
         logic_value = self.get_logic_value(logic_state)
         # blend the two values using blending weights and compute the final value
         blended_value = (

@@ -93,7 +93,7 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         )
         #TODO: double check grayscale / resizing
         # env = PixelAndObjectCentricWrapper(env, do_pixel_resize=True, grayscale=True)
-        env = PixelAndObjectObsWrapper(env)
+        env = PixelAndObjectObsWrapper(env, grayscale=True, do_pixel_resize=True)
         # obs is tuple, first is pixel_stack, second is oc_flat
         self.env = MultiRewardLogWrapper(env)
 
@@ -109,9 +109,11 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
 
         # Only keep last frame for logic obs (frame stack is not needed for OC)
         self.single_logic_observation_space = jax.vmap(self._kangaroo_observation_to_array)(logic_obs)[0].shape
-        # self.single_logic_observation_space = tuple(list(self.single_observation_space)[1:])
-        # Should be: (stack, n_features), is: (4, 210, 160, 3)
-        self.single_observation_space = neural_obs.shape 
+        # integrate stack into channel dimension
+        single_observation_space = neural_obs.shape[1:3] + (neural_obs.shape[0] * neural_obs.shape[3],)
+        # shape: (210, 160, 12) -> (H, W, C*stack)
+        # for convs, we need (C,H,W)
+        self.single_observation_space = (single_observation_space[2], single_observation_space[0], single_observation_space[1]) 
 
         print("Single obs space:", self.single_observation_space)
         print("Single logic obs space:", self.single_logic_observation_space)
@@ -181,6 +183,11 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         logic_obs = jax.vmap(jax.vmap(self._kangaroo_observation_to_array))(logic_obs)
         # for logic_obs, we take only the last frame (no frame stack)
         logic_obs = torch.tensor(np.array(logic_obs[:, -1]))
+        # neural_obs has shape (batch, stack, h, w, c)
+        # integrate stack into channel dimension
+        orig_shape = neural_obs.shape
+        new_shape = (neural_obs.shape[0],) + self.single_observation_space
+        neural_obs = neural_obs.reshape(new_shape)
         neural_obs = np.array(neural_obs)
         return logic_obs, neural_obs 
 
@@ -197,6 +204,12 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         self.state = state
         logic_obs = jax.vmap(jax.vmap(self._kangaroo_observation_to_array))(logic_obs)
         logic_obs = torch.tensor(np.array(logic_obs[:, -1])) 
+
+        # neural_obs has shape (batch, stack, h, w, c)
+        # integrate stack into channel dimension
+        orig_shape = neural_obs.shape
+        new_shape = (neural_obs.shape[0],) + self.single_observation_space
+        neural_obs = neural_obs.reshape(new_shape)
         neural_obs = np.array(neural_obs)
         all_rewards = infos.pop("all_rewards")
         rewards = np.array(all_rewards[:, 0])

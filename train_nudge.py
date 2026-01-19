@@ -1,5 +1,6 @@
 import datetime
 import os
+os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
 import random
 import time
 from dataclasses import dataclass

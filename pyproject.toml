@@ -5,16 +5,17 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "jax>=0.5.3",
+    "jax[cuda12]>=0.5.3",
     "nsfr",
     "nudge",
     "ocatari",
     "jaxatari",
     "stable-baselines3>=2.7.1",
+    "moviepy>=2.2.1",
 ]
 
 [tool.uv.sources]
 nsfr = {path = "./nsfr", editable = true}
 nudge = {path = "./nudge", editable = true}
-jaxatari = { git = "ssh://git@github.com/k4ntz/JAXAtari", tag = "cf7f80f" }
+jaxatari = { git = "ssh://git@github.com/k4ntz/JAXAtari", tag = "2d39774" }
 ocatari = { git = "ssh://git@github.com/k4ntz/OC_Atari", tag = "99c8746" }

@@ -49,17 +49,18 @@ class CNNActor(nn.Module):
     Neural Blender Actor;
     a neural network that takes an image as input and outputs a probability distribution over actions.
     """
-    def __init__(self, n_actions=18, ):
+    def __init__(self, n_actions=18, in_channels=4):
         super().__init__()
         self.network = nn.Sequential(
-            layer_init(nn.Conv2d(4, 32, 8, stride=4)),
+            layer_init(nn.Conv2d(in_channels, 32, 8, stride=4)),
             nn.ReLU(),
             layer_init(nn.Conv2d(32, 64, 4, stride=2)),
             nn.ReLU(),
             layer_init(nn.Conv2d(64, 64, 3, stride=1)),
             nn.ReLU(),
             nn.Flatten(),
-            layer_init(nn.Linear(64 * 7 * 7, 512)),
+            # layer_init(nn.Linear(64*22*16, 512)), # for 210x160 image
+            layer_init(nn.Linear(64 * 7 * 7, 512)),  # for 84x84 image
             nn.ReLU(),
         )
         self.actor = layer_init(nn.Linear(512, n_actions), std=0.01)
@@ -161,11 +162,14 @@ def load_cleanrl_envs(env_id, run_name=None, capture_video=False, num_envs=1):
     )
     return envs
     
-def load_cleanrl_agent(pretrained, device, cnn=False, input_dim=None):
+def load_cleanrl_agent(pretrained, device, cnn=False, observation_space=None):
     # from cleanrl.cleanrl.ppo_atari import Agent
     if cnn:
-        agent = CNNActor(n_actions=18) #, device=device, verbose=1)
+        print("CNN agent")
+        agent = CNNActor(n_actions=18, in_channels=observation_space[0]) #, device=device, verbose=1)
     else:
+        print("MLP agent")
+        input_dim = np.prod(observation_space)
         agent = MLPActor(input_dim=input_dim, n_actions=18)
     if pretrained:
         try:

@@ -1,3 +1,5 @@
+import os
+os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
 import tyro
 from nudge.evaluator import Evaluator
 

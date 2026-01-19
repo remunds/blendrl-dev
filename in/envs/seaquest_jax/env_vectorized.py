@@ -1,3 +1,5 @@
+from networkx import single_source_bellman_ford
+from fontTools.merge.layout import onlyExisting
 import functools
 from typing import Sequence
 
@@ -27,6 +29,7 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         "down": 5,
     }
     pred_names: Sequence
+    only_oc: bool = True # Change to False to use pixel obs for neural ppo 
 
     def __init__(
         self,
@@ -43,9 +46,6 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         env = jaxatari.make("seaquest")
         env = MultiRewardWrapper(env, reward_funcs=[blendrl_reward_function])
     
-        #TODO: For actual BlendRL style, we should use ObjectCentricAndPixelObsWrapper
-        # then feed pixel as neural state and oc as logic state
-        # But: for fair comparison with NEXUS, we keep only OC observations
         env = AtariWrapper(
             env,
             episodic_life=True, # explicitly set in cleanRL-envpool
@@ -58,7 +58,8 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
             sticky_actions=False, 
             first_fire=True,
         )
-        env = PixelAndObjectObsWrapper(env)
+        env = PixelAndObjectObsWrapper(env, do_pixel_resize=True, grayscale=True)
+
         self.env = MultiRewardLogWrapper(env)
 
 
@@ -75,7 +76,10 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         dummy_obs = self.env.reset(self.keys[0])[0]
         neural_obs, logic_obs = dummy_obs
         self.single_logic_observation_space = jax.vmap(self._seaquest_observation_to_array)(logic_obs)[0].shape
-        self.single_observation_space = neural_obs.shape
+        # integrate frame stack into channel dimension
+        single_observation_space = neural_obs.shape[1:3] + (neural_obs.shape[3] * neural_obs.shape[0],)  # height, width, channels*frame_stack 
+        # for convs, we want (C, H, W)
+        self.single_observation_space = (single_observation_space[2], single_observation_space[0], single_observation_space[1]) 
 
         print("Single obs space:", self.single_observation_space)
         print("Single logic obs space:", self.single_logic_observation_space)
@@ -128,7 +132,12 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         # prob: obs arrays have shape (n_envs, frame_stack)
         logic_obs = jax.vmap(jax.vmap(self._seaquest_observation_to_array))(logic_obs)
         # for logic_obs, we take only the last frame (no frame stack)
-        return torch.tensor(np.array(logic_obs[:, -1])), np.array(neural_obs) # Use jaxatari OC-obs directly for both logic and neural state
+
+        orig_shape = neural_obs.shape
+        new_shape = (neural_obs.shape[0],) + self.single_observation_space
+        neural_obs = neural_obs.reshape(new_shape)
+        neural_obs = np.array(neural_obs)
+        return torch.tensor(np.array(logic_obs[:, -1])), neural_obs # Use jaxatari OC-obs directly for both logic and neural state
 
     def step(self, actions, is_mapped: bool = False):
         assert (
@@ -143,6 +152,10 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         self.state = state
         logic_obs = jax.vmap(jax.vmap(self._seaquest_observation_to_array))(logic_obs)
         logic_obs = torch.tensor(np.array(logic_obs[:, -1])) 
+        # integrate stack into channel dimension
+        orig_shape = neural_obs.shape
+        new_shape = (neural_obs.shape[0],) + self.single_observation_space
+        neural_obs = neural_obs.reshape(new_shape)
         neural_obs = np.array(neural_obs)
         all_rewards = infos.pop("all_rewards")
         rewards = np.array(all_rewards[:, 0])

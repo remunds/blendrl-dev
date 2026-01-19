@@ -1,3 +1,4 @@
+from moviepy.video.tools.cuts import FramesMatch
 from datetime import datetime
 from typing import Union
 import os
@@ -109,6 +110,22 @@ class Evaluator:
         blendrl_returns = []
         aligned_scores = []
         frames = []
+        episode_data = {
+            "frames": [],
+            "rewards": [],
+            "dones": [],
+            "actions_str": [],
+            "actions_int": [],
+            "life": [],
+        }
+        def add_data(episode_data, frame, reward, done, action_str, action_int, life):
+            episode_data["frames"].append(frame)
+            episode_data["rewards"].append(reward)
+            episode_data["dones"].append(done)
+            episode_data["actions_str"].append(action_str)
+            episode_data["actions_int"].append(action_int)
+            episode_data["life"].append(life)
+            return episode_data
 
         runs = range(self.episodes)
         while self.running:
@@ -141,6 +158,17 @@ class Evaluator:
                     # if step_count > 1000:
                     # break
 
+                #TODO: Make sure this runs with only one env at a time
+                episode_data = add_data(
+                    episode_data,
+                    obs_nn,
+                    0.0,
+                    False,
+                    self.action_meanings[action.cpu().numpy()],
+                    int(action.cpu().numpy()),
+                    self.env.state.lives,
+                )
+
                 (new_obs, new_obs_nn), reward, truncations, dones, infos = (
                     self.env.step(action, is_mapped=self.takeover)
                 )
@@ -158,7 +186,7 @@ class Evaluator:
                 obs = obs.to(self.model.device)
                 obs_nn = new_obs_nn
                 obs_nn = obs_nn.to(self.model.device)
-
+                # TODO: If we only have one env, dones is a bool, not an array
                 if dones.any():
                     print("Episode done.: ", dones)
                     game_return = infos["returned_episode_env_returns"].mean().item()

@@ -1,4 +1,5 @@
 import os
+os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
 import datetime
 import random
 import time
@@ -63,8 +64,8 @@ class Args:
     # total_timesteps: int = 60000000
     total_timesteps: int = 50_000_000
     """total timesteps of the experiments"""
-    # num_envs: int = 20
-    num_envs: int = 512
+    num_envs: int = 64 # JAXAtari with pixel and oc obs
+    # num_envs: int = 512 # JAXAtari with just oc obs
     """the number of parallel game environments"""
     num_steps: int = 128
     """the number of steps to run in each environment per policy rollout"""

@@ -1,3 +1,4 @@
+from torch.special import modified_bessel_i0
 import functools
 from typing import Sequence
 import jaxatari
@@ -80,6 +81,7 @@ class NudgeEnv(NudgeBaseEnv):
         "down": 5,
     }
     pred_names: Sequence
+    modified_env: str = ""
 
     def __init__(
         self,
@@ -114,6 +116,7 @@ class NudgeEnv(NudgeBaseEnv):
             print(f"Using modified Kangaroo environment: {modified_env}.")
             #NOTE: Use no_danger for NEXUS comparison 
             # env = jaxatari.make("kangaroo", mods_config=["no_danger"])
+            self.modified_env = modified_env
         env = MultiRewardWrapper(env, reward_funcs=[blendrl_reward_function, reached_platform_level])
     
         #TODO: For actual BlendRL style, we should use PixelAndObjectCentricWrapper 
@@ -184,6 +187,9 @@ class NudgeEnv(NudgeBaseEnv):
         final_obs = final_obs.at[1].set(jnp.array([1, obs.child_position[0], obs.child_position[1], 0], dtype=jnp.int32))
         # monkeys
         final_obs = final_obs.at[2:6].set(_position_arr_to_nudge(obs.monkey_positions))
+        if self.modified_env in ["tanks", "snakes", "dragons"]:
+            # enemies are tanks, snakes, dragons, so no monkeys detected
+            final_obs = final_obs.at[2:6].set(jnp.ones_like(final_obs[2:6])*-10)
         
         # falling_coco
         final_obs = final_obs.at[6].set(_position_arr_to_nudge(obs.falling_coco_position))
@@ -191,16 +197,28 @@ class NudgeEnv(NudgeBaseEnv):
         # thrown_coco
         # Note: only first 3 coconuts are kept for now (there are max 4 in jaxatari)
         final_obs = final_obs.at[7:10].set(_position_arr_to_nudge(obs.coco_positions)[:3])
+
+        if self.modified_env in ["replace_coconut_fireball", "replace_coconut_honey_bee", "replace_coconut_wasp"]:
+            # coconuts are fireballs, honey bees, wasps, so no coconuts (falling + thrown) detected
+            final_obs = final_obs.at[6].set(jnp.ones_like(final_obs[6])*-10)
+            final_obs = final_obs.at[7:10].set(jnp.ones_like(final_obs[7:10])*-10)
+
         
         # fruit
         final_obs = final_obs.at[10:13].set(_position_arr_to_nudge(obs.fruit_positions))
 
         # bell
         final_obs = final_obs.at[13].set(_position_arr_to_nudge(obs.bell_position).squeeze()) 
+        if self.modified_env in ["flame_trap", "cactus_trap", "danger_trap"]:
+            # enemies are tanks, snakes, dragons, so no monkeys detected
+            final_obs = final_obs.at[2:6].set(jnp.ones_like(final_obs[2:6])*-10)
 
         # ladder
         # Note: only first 6 ladders are kept for now (there are max 20 in jaxatari, all levels...)
         final_obs = final_obs.at[14:20].set(_position_arr_to_nudge(obs.ladder_positions)[:6])
+        if self.modified_env in ["ropes", "chains"]:
+            # ladders are ropes or chains, so no ladders detected
+            final_obs = final_obs.at[14:20].set(jnp.ones_like(final_obs[14:20])*-10)
         
         # platform
         final_obs = final_obs.at[20:40].set(_position_arr_to_nudge(obs.platform_positions))

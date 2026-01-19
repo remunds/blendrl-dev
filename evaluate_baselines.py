@@ -33,7 +33,7 @@ for run, path in evals.items():
     seed = int(run.split("_")[-1])
     # score, _, _, _, aligned_score, _ = evaluate(env_name, path, episodes=3, seed=seed, modified_env=False)
     # mod_score, _, _, _, mod_aligned_score, _ = evaluate(env_name, path, episodes=3, seed=seed, modified_env=True)
-    mod_score, _, _, _, mod_aligned_score, _ = evaluate(env_name, path, episodes=3, seed=seed, modified_env="danger_trap")
+    mod_score, _, _, _, mod_aligned_score, _ = evaluate(env_name, path, episodes=3, seed=seed, modified_env="chains")
     # scores.append(score)
     # aligned_scores.append(aligned_score)
     mod_scores.append(mod_score)
