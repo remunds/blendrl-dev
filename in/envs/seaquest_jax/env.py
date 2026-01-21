@@ -1,5 +1,6 @@
 import functools
 from typing import Sequence
+import torch
 from nudge.env import NudgeBaseEnv
 import jax
 import jax.numpy as jnp
@@ -36,6 +37,7 @@ class NudgeEnv(NudgeBaseEnv):
         "down": 5,
     }
     pred_names: Sequence
+    eval: bool = False # whether in eval mode
 
     def __init__(
         self,
@@ -49,6 +51,8 @@ class NudgeEnv(NudgeBaseEnv):
         super().__init__(mode)
         # set up multiple envs
         # env = JaxSeaquest(reward_funcs=[blendrl_reward_function, total_collected])
+        if mode == "eval":
+            self.eval = True
         env = jaxatari.make("seaquest")
         if modified_env is not None:
             env = jaxatari.make("seaquest", mods_config=[f"{modified_env}"])
@@ -154,8 +158,9 @@ class NudgeEnv(NudgeBaseEnv):
         logic_obs = logic_obs[jnp.newaxis, ...]
         logic_obs = torch.tensor(np.array(logic_obs[:, -1])) 
         neural_obs = np.array(neural_obs)
-        all_rewards = infos.pop("all_rewards")
-        rewards = np.array(all_rewards[0])
+        if not self.eval:
+            all_rewards = infos.pop("all_rewards")
+            rewards = np.array(all_rewards[0])
         dones = np.array(dones)
         truncations = np.array(truncations)
 

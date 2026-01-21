@@ -82,6 +82,7 @@ class NudgeEnv(NudgeBaseEnv):
     }
     pred_names: Sequence
     modified_env: str = ""
+    eval: bool = False # whether in eval mode
 
     def __init__(
         self,
@@ -104,6 +105,8 @@ class NudgeEnv(NudgeBaseEnv):
         """
         super().__init__(mode)
         # set up multiple envs
+        if mode == "eval":
+            self.eval = True
 
         print("Initializing JAXAtari Kangaroo environment...")
 
@@ -252,8 +255,9 @@ class NudgeEnv(NudgeBaseEnv):
         logic_obs = logic_obs[jnp.newaxis, ...]
         logic_obs = torch.tensor(np.array(logic_obs[:, -1])) 
         neural_obs = np.array(neural_obs)
-        all_rewards = infos.pop("all_rewards")
-        rewards = np.array(all_rewards[0])
+        if not self.eval:
+            all_rewards = infos.pop("all_rewards")
+            rewards = np.array(all_rewards[0])
         dones = np.array(dones)
         truncations = np.array(truncations)
 

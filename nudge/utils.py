@@ -104,7 +104,11 @@ def load_model(model_dir,
     # env_kwargs = dict(render_oc_overlay=True)
     env_kwargs = {}
 
-    mlp_actor = "jax" in environment
+    # mlp_actor = "jax" in environment
+    if "actor_net_cnn" in config:
+        mlp_actor = not config["actor_net_cnn"]
+    else:
+        mlp_actor = "jax" in environment
 
     # Setup the environment
     env = NudgeBaseEnv.from_name(environment, mode=algorithm, **env_kwargs)
