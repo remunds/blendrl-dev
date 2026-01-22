@@ -54,6 +54,7 @@ class NudgeBaseEnv(ABC):
         env_path = f"in/envs/{name}/env.py"
         print(f"Loading environment from {env_path}...")
         env_module = load_module(env_path)
+        print("using kwargs:", kwargs)
         return env_module.NudgeEnv(**kwargs)
 
     def close(self):

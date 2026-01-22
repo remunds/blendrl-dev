@@ -105,8 +105,7 @@ class NudgeEnv(NudgeBaseEnv):
         """
         super().__init__(mode)
         # set up multiple envs
-        if mode == "eval":
-            self.eval = True
+        self.eval = not episodic_life
 
         print("Initializing JAXAtari Kangaroo environment...")
 
@@ -137,7 +136,8 @@ class NudgeEnv(NudgeBaseEnv):
             sticky_actions=False, 
             first_fire=True,
         )
-        env = PixelAndObjectCentricWrapper(env, do_pixel_resize=True, grayscale=True)
+        print("Episodic life:", episodic_life)
+        env = PixelAndObjectObsWrapper(env, do_pixel_resize=True, grayscale=True)
         # obs is tuple, first is pixel_stack, second is oc_flat
         self.env = MultiRewardLogWrapper(env)
         self.renderer = env.renderer
@@ -277,7 +277,8 @@ class NudgeEnv(NudgeBaseEnv):
         )
     
     def render(self ):
-        return self.renderer.render(self.state.atari_state.env_state)
+        state = jax.tree_util.tree_leaves(self.state, is_leaf=lambda x: not (hasattr(x, 'env_state') or hasattr(x, 'atari_state')))[0]
+        return self.renderer.render(state)
 
 
     def close(self):

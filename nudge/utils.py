@@ -100,15 +100,16 @@ def load_model(model_dir,
     algorithm = config["algorithm"]
     environment = config["env_name"]
     # env_kwargs = config["env_kwargs"]
-    # env_kwargs.update(env_kwargs_override)
     # env_kwargs = dict(render_oc_overlay=True)
     env_kwargs = {}
+    if env_kwargs_override is not None:
+        env_kwargs.update(env_kwargs_override)
 
     # mlp_actor = "jax" in environment
     if "actor_net_cnn" in config:
         mlp_actor = not config["actor_net_cnn"]
-    else:
-        mlp_actor = "jax" in environment
+    # else:
+    #     mlp_actor = "jax" in environment
 
     # Setup the environment
     env = NudgeBaseEnv.from_name(environment, mode=algorithm, **env_kwargs)

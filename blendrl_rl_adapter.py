@@ -46,25 +46,12 @@ class BlendrlRLAgent:
         # Attempt to Load Model
         # We try generic load_model first (handles Logic/Blend/Neural-PPO-Logic variants)
         # If that fails or if config suggests otherwise, we might try specific loaders
-        try:
-            # We redirect stdout to avoid clutter during load
-            # self.model, _ = load_model(self.model_dir, steps=self.step, device=self.device)
-            # Actually, standard load_model might instantiate a Vectorized Env which we want to avoid if possible,
-            # but it is coupled.
-            # We will use it for now as it reconstructs the model architecture correctly.
-            model_res = load_model(self.model_dir, steps=self.step, device=self.device)
-            if isinstance(model_res, tuple):
-                self.model = model_res[0]
-            else:
-                self.model = model_res
-            print("[BlendRL] Loaded using standard load_model.")
-        except Exception as e:
-            print(f"[BlendRL] Standard load_model failed ({e}), trying load_neuralppo_model...")
-            try:
-                self.model = load_neuralppo_model(self.model_dir, steps=self.step, device=self.device)
-                print("[BlendRL] Loaded using load_neuralppo_model.")
-            except Exception as e2:
-                raise RuntimeError(f"Could not load BlendRL model: {e} / {e2}")
+        model_res = load_model(self.model_dir, steps=self.step, device=self.device)
+        if isinstance(model_res, tuple):
+            self.model = model_res[0]
+        else:
+            self.model = model_res
+        print("[BlendRL] Loaded using standard load_model.")
 
         self.model.eval()
 
@@ -120,7 +107,7 @@ class BlendrlRLAgent:
             # Assume just pixels
             neural_state = observation
 
-        neural_state = torch.tensor(np.array(neural_state), device=self.device)
+        neural_state = torch.tensor(np.array(neural_state), device=self.device, dtype=torch.float32)
         # 2. Logic / Hybrid Execution
         if not self.is_cnn:
             if logic_state is None:

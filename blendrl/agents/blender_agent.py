@@ -334,13 +334,11 @@ class BlenderActor(nn.Module):
         Returns:
             action_dist: action distribution
         """
-        # hidden = self.neural_actor.network(neural_state)
-        # logits = self.neural_actor.actor(hidden)
-        # probs = Categorical(logits=logits)
-        # action_dist = probs.probs
-        # return action_dist
-        # NOTE: Had to use neural_actor.forward here to ensure proper input normalization (/255)
-        return self.neural_actor(neural_state)
+        hidden = self.neural_actor.network(neural_state)
+        logits = self.neural_actor.actor(hidden)
+        probs = Categorical(logits=logits)
+        action_dist = probs.probs
+        return action_dist
 
     def reshape_action_distribution(self, action_dist):
         """

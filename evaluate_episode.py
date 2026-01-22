@@ -76,16 +76,7 @@ def main():
         return
     
     print("Initializing Agent...")
-    try:
-        # device = "cuda" if torch.cuda.is_available() else "cpu"
-        device = "cpu" # Force CPU to avoid OOM
-        # The adapter loads its own internal helper env, but expects 'env' arg too.
-        # We pass our env, though it might not be used heavily by the adapter itself 
-        # (adapter uses it mostly for reference, except internal logic helpers).
-        agent = BlendrlRLAgent(env, checkpoint_path, env_name=env_name, device=device)
-    except Exception as e:
-        print(f"Failed to initialize agent: {e}")
-        return
+    agent = BlendrlRLAgent(env, checkpoint_path, env_name=env_name, device="cpu")
     
     print("Starting Episode...")
     try:
