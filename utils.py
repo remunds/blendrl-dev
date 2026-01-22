@@ -78,6 +78,9 @@ class CNNActor(nn.Module):
         return action, probs.log_prob(action), probs.entropy(), self.critic(hidden)
     
     def forward(self, x):
+        # Evaluator shape: (4, 84, 84)
+        # Training shape: (64, 4, 84, 84)
+        # so: should be (1, 4, 84, 84) for single input
         hidden = self.network(x / 255.0)
         logits = self.actor(hidden)
         probs = Categorical(logits=logits)

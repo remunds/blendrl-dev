@@ -4,6 +4,8 @@ from typing import Union
 import os
 import numpy as np
 import torch as th
+import jax
+import jax.numpy as jnp
 
 # import pygame
 # import vidmaker
@@ -13,6 +15,7 @@ from nudge.agents.logic_agent import NsfrActorCritic
 from nudge.agents.neural_agent import ActorCritic
 from nudge.utils import load_model, yellow
 from nudge.env import NudgeBaseEnv
+from jaxatari.environment import JAXAtariAction
 
 SCREENSHOTS_BASE_PATH = "out/screenshots/"
 PREDICATE_PROBS_COL_WIDTH = 500 * 2
@@ -26,6 +29,30 @@ import torch
 
 torch.set_num_threads(5)
 
+
+jaxatari_action_mapping = {
+    JAXAtariAction.NOOP: "NOOP",
+    JAXAtariAction.FIRE: "FIRE",
+    JAXAtariAction.UP: "UP",
+    JAXAtariAction.RIGHT: "RIGHT",
+    JAXAtariAction.LEFT: "LEFT",
+    JAXAtariAction.DOWN: "DOWN",
+    JAXAtariAction.UPRIGHT: "UPRIGHT",
+    JAXAtariAction.UPLEFT: "UPLEFT",
+    JAXAtariAction.DOWNRIGHT: "DOWNRIGHT",
+    JAXAtariAction.DOWNLEFT: "DOWNLEFT",
+    JAXAtariAction.UPFIRE: "UPFIRE",
+    JAXAtariAction.RIGHTFIRE: "RIGHTFIRE",
+    JAXAtariAction.LEFTFIRE: "LEFTFIRE",
+    JAXAtariAction.DOWNFIRE: "DOWNFIRE",
+    JAXAtariAction.UPRIGHTFIRE: "UPRIGHTFIRE",
+    JAXAtariAction.UPLEFTFIRE: "UPLEFTFIRE",
+    JAXAtariAction.DOWNRIGHTFIRE: "DOWNRIGHTFIRE",
+    JAXAtariAction.DOWNLEFTFIRE: "DOWNLEFTFIRE"
+}
+
+def unpack_state(state):
+    return jax.tree_util.tree_leaves(state, is_leaf=lambda x: not (hasattr(x, 'env_state') or hasattr(x, 'atari_state')))[0]
 
 class Evaluator:
     model: Union[NsfrActorCritic, ActorCritic]
@@ -60,7 +87,8 @@ class Evaluator:
             agent_path, env_kwargs_override=env_kwargs, device=device
         )
         self.env = NudgeBaseEnv.from_name(
-            env_name, mode="deictic", seed=seed, **env_kwargs
+            # env_name, mode="deictic", seed=seed, **env_kwargs
+            env_name, mode="eval", seed=seed, **env_kwargs
         )
         # self.env = self.model.env
         self.env.reset()
@@ -76,7 +104,8 @@ class Evaluator:
         self.fps = fps
 
         try:
-            self.action_meanings = self.env.env.get_action_meanings()
+            # self.action_meanings = self.env.env.get_action_meanings()
+            self.action_meanings = jaxatari_action_mapping
             self.keys2actions = self.env.env.unwrapped.get_keys_to_action()
         except Exception:
             print(
@@ -84,7 +113,7 @@ class Evaluator:
                     "Info: No key-to-action mapping found for this env. No manual user control possible."
                 )
             )
-            self.action_meanings = None
+            # self.action_meanings = None
             self.keys2actions = {}
         self.current_keys_down = set()
 
@@ -158,19 +187,19 @@ class Evaluator:
                     # if step_count > 1000:
                     # break
 
-                #TODO: Make sure this runs with only one env at a time
-                episode_data = add_data(
-                    episode_data,
-                    obs_nn,
-                    0.0,
-                    False,
-                    self.action_meanings[action.cpu().numpy()],
-                    int(action.cpu().numpy()),
-                    self.env.state.lives,
-                )
 
                 (new_obs, new_obs_nn), reward, truncations, dones, infos = (
                     self.env.step(action, is_mapped=self.takeover)
+                )
+                #TODO: Make sure this runs with only one env at a time
+                episode_data = add_data(
+                    episode_data,
+                    obs_nn.cpu().numpy(),
+                    reward,
+                    dones or truncations,
+                    self.action_meanings[action.cpu().item()],
+                    int(action.cpu().numpy()),
+                    int(unpack_state(self.env.state).lives),
                 )
                 if reward > 0:
                     print(f"Reward: {reward:.2f} at Step {step_count}")
@@ -237,6 +266,15 @@ class Evaluator:
         std_blendrl_return = np.std(blendrl_returns)
         aligned_mean_return = np.mean(aligned_scores) if len(aligned_scores) > 0 else 0
         aligned_std_return = np.std(aligned_scores) if len(aligned_scores) > 0 else 0
+
+        # Store episode_data
+        dir_path = "out/episode_data/"
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+        data_path = dir_path + f"eval_episode_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.npz"
+        np.savez_compressed(data_path, **episode_data)
+        print(f"Saved episode data to: {data_path}")
+
         return mean_return, std_return, mean_blendrl_return, std_blendrl_return, aligned_mean_return, aligned_std_return 
         # game_ret, game_std, aligned_ret, aligned_std, mod_game_ret, mod_game_std, mod_aligned_ret, mod_aligned_std
         # pygame.quit()

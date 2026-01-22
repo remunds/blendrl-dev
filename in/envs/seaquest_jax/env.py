@@ -75,7 +75,7 @@ class NudgeEnv(NudgeBaseEnv):
             sticky_actions=False, 
             first_fire=False,
         )
-        env = PixelAndObjectObsWrapper(env)
+        env = PixelAndObjectObsWrapper(env, do_pixel_resize=True, grayscale=True)
         self.env = MultiRewardLogWrapper(env)
         self.renderer = env.renderer 
 
@@ -91,7 +91,9 @@ class NudgeEnv(NudgeBaseEnv):
         dummy_obs = self.env.reset(self.key)[0]
         neural_obs, logic_obs = dummy_obs
         self.single_logic_observation_space = jax.vmap(self._seaquest_observation_to_array)(logic_obs)[0].shape
-        self.single_observation_space = neural_obs.shape
+        # for convs, we need (C, H, W)
+        single_observation_space = neural_obs.shape[1:3] + (neural_obs.shape[0] * neural_obs.shape[3],)
+        self.single_observation_space = (single_observation_space[2], single_observation_space[0], single_observation_space[1]) 
 
         print("Single obs space:", self.single_observation_space)
         print("Single logic obs space:", self.single_logic_observation_space)
@@ -144,8 +146,14 @@ class NudgeEnv(NudgeBaseEnv):
         # prob: obs arrays have shape (n_envs, frame_stack)
         logic_obs = jax.vmap(self._seaquest_observation_to_array)(logic_obs)
         logic_obs = logic_obs[jnp.newaxis, ...]
+        logic_obs = torch.tensor(np.array(logic_obs[:, -1]))
         # for logic_obs, we take only the last frame (no frame stack)
-        return torch.tensor(np.array(logic_obs[:, -1])), np.array(neural_obs) # Use jaxatari OC-obs directly for both logic and neural state
+
+        # integrate stack into channel dimension
+        # new_shape = (neural_obs.shape[0],) + self.single_observation_space
+        neural_obs = neural_obs.reshape(1, *self.single_observation_space)
+        neural_obs = np.array(neural_obs)
+        return logic_obs, neural_obs 
 
     def step(self, action, is_mapped: bool = False):
         # need to vmap over both
@@ -157,6 +165,9 @@ class NudgeEnv(NudgeBaseEnv):
         logic_obs = jax.vmap(self._seaquest_observation_to_array)(logic_obs)
         logic_obs = logic_obs[jnp.newaxis, ...]
         logic_obs = torch.tensor(np.array(logic_obs[:, -1])) 
+        # integrate stack into channel dimension
+        # new_shape = (neural_obs.shape[0],) + self.single_observation_space
+        neural_obs = neural_obs.reshape(1, *self.single_observation_space)
         neural_obs = np.array(neural_obs)
         if not self.eval:
             all_rewards = infos.pop("all_rewards")
@@ -173,7 +184,8 @@ class NudgeEnv(NudgeBaseEnv):
         )
     
     def render(self ):
-        return self.renderer.render(self.state.atari_state.env_state)
+        state = jax.tree_util.tree_leaves(self.state, is_leaf=lambda x: not (hasattr(x, 'env_state') or hasattr(x, 'atari_state')))[0]
+        return self.renderer.render(state)
 
 
     def close(self):

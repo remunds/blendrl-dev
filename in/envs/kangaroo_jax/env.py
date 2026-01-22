@@ -137,9 +137,7 @@ class NudgeEnv(NudgeBaseEnv):
             sticky_actions=False, 
             first_fire=True,
         )
-        #TODO: double check grayscale / resizing
-        # env = PixelAndObjectCentricWrapper(env, do_pixel_resize=True, grayscale=True)
-        env = PixelAndObjectObsWrapper(env)
+        env = PixelAndObjectCentricWrapper(env, do_pixel_resize=True, grayscale=True)
         # obs is tuple, first is pixel_stack, second is oc_flat
         self.env = MultiRewardLogWrapper(env)
         self.renderer = env.renderer
@@ -154,7 +152,9 @@ class NudgeEnv(NudgeBaseEnv):
         dummy_obs, dummy_state = self.env.reset(self.key)
         neural_obs, logic_obs = dummy_obs
         self.single_logic_observation_space = jax.vmap(self._kangaroo_observation_to_array)(logic_obs)[0].shape
-        self.single_observation_space = neural_obs.shape 
+        # for convs, we need (C, H, W)
+        single_observation_space = neural_obs.shape[1:3] + (neural_obs.shape[0] * neural_obs.shape[3],)
+        self.single_observation_space = (single_observation_space[2], single_observation_space[0], single_observation_space[1]) 
 
         print("Single obs space:", self.single_observation_space)
         print("Single logic obs space:", self.single_logic_observation_space)
@@ -241,6 +241,10 @@ class NudgeEnv(NudgeBaseEnv):
         logic_obs = logic_obs[jnp.newaxis, ...]
         # for logic_obs, we take only the last frame (no frame stack)
         logic_obs = torch.tensor(np.array(logic_obs[:, -1]))
+
+        # integrate stack into channel dimension
+        # new_shape = (neural_obs.shape[0],) + self.single_observation_space
+        neural_obs = neural_obs.reshape(1, *self.single_observation_space)
         neural_obs = np.array(neural_obs)
         return logic_obs, neural_obs 
 
@@ -254,7 +258,10 @@ class NudgeEnv(NudgeBaseEnv):
         # add batch_dim in front
         logic_obs = logic_obs[jnp.newaxis, ...]
         logic_obs = torch.tensor(np.array(logic_obs[:, -1])) 
+        # new_shape = (neural_obs.shape[0],) + self.single_observation_space
+        neural_obs = neural_obs.reshape(1, *self.single_observation_space)
         neural_obs = np.array(neural_obs)
+
         if not self.eval:
             all_rewards = infos.pop("all_rewards")
             rewards = np.array(all_rewards[0])

@@ -50,8 +50,8 @@ def get_latest_checkpoint(run_dir):
     return str(latest_file)
 
 def main():
-    # run_dir = "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_1_20251118_113234"
-    run_dir = "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001"
+    # run_dir = "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001"
+    run_dir = "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_171753"
     
     if not os.path.exists(run_dir):
         print(f"Error: Run directory not found: {run_dir}")
@@ -65,12 +65,12 @@ def main():
         print(e)
         return
 
-    env_name = "kangaroo_jax"
+    env_name = "seaquest_jax"
     print(f"Creating Environment: {env_name}")
     try:
         # mode='eval' is critical as per adapter logic (loads helper env with eval)
         # Here we use it as the main env
-        env = NudgeBaseEnv.from_name(env_name, mode='eval')
+        env = NudgeBaseEnv.from_name(env_name, mode='eval', episodic_life=False)
     except Exception as e:
         print(f"Failed to create env: {e}")
         return

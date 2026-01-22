@@ -189,7 +189,6 @@ class BlenderActor(nn.Module):
             weights: blending weights
         """
         # state size: B * N
-        batch_size = neural_state.size(0)
         logic_action_probs = self.to_action_distribution(self.logic_actor(logic_state))
 
         # keep batch_size dimension
@@ -335,11 +334,13 @@ class BlenderActor(nn.Module):
         Returns:
             action_dist: action distribution
         """
-        hidden = self.neural_actor.network(neural_state)
-        logits = self.neural_actor.actor(hidden)
-        probs = Categorical(logits=logits)
-        action_dist = probs.probs
-        return action_dist
+        # hidden = self.neural_actor.network(neural_state)
+        # logits = self.neural_actor.actor(hidden)
+        # probs = Categorical(logits=logits)
+        # action_dist = probs.probs
+        # return action_dist
+        # NOTE: Had to use neural_actor.forward here to ensure proper input normalization (/255)
+        return self.neural_actor(neural_state)
 
     def reshape_action_distribution(self, action_dist):
         """

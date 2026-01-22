@@ -133,7 +133,6 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         logic_obs = jax.vmap(jax.vmap(self._seaquest_observation_to_array))(logic_obs)
         # for logic_obs, we take only the last frame (no frame stack)
 
-        orig_shape = neural_obs.shape
         new_shape = (neural_obs.shape[0],) + self.single_observation_space
         neural_obs = neural_obs.reshape(new_shape)
         neural_obs = np.array(neural_obs)
@@ -153,7 +152,6 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         logic_obs = jax.vmap(jax.vmap(self._seaquest_observation_to_array))(logic_obs)
         logic_obs = torch.tensor(np.array(logic_obs[:, -1])) 
         # integrate stack into channel dimension
-        orig_shape = neural_obs.shape
         new_shape = (neural_obs.shape[0],) + self.single_observation_space
         neural_obs = neural_obs.reshape(new_shape)
         neural_obs = np.array(neural_obs)

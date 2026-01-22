@@ -93,7 +93,8 @@ class BlendrlRLAgent:
         # Load Helper Env for Action Mapping & Metadata
         # We use mode='eval' to avoid training overheads
         try:
-            self.helper_env = NudgeBaseEnv.from_name(env_name, mode='eval')
+            # Don't want to use episodic_life during eval 
+            self.helper_env = NudgeBaseEnv.from_name(env_name, mode='eval', episodic_life=False)
         except Exception as e:
             print(f"[BlendRL] Warning: Could not instantiate helper NudgeEnv: {e}")
             self.helper_env = None
@@ -103,8 +104,7 @@ class BlendrlRLAgent:
         Predict action from observations.
         
         Args:
-            observation: Either just pixels `frame_np` (if is_cnn) OR 
-                         a tuple `(logic_state, neural_state)` as returned by BlendRL envs.
+            observation: A tuple `(logic_state, neural_state)` as returned by BlendRL envs.
         
         Returns:
             Action string compatible with ThinkRL/JAXAtari.
@@ -120,6 +120,7 @@ class BlendrlRLAgent:
             # Assume just pixels
             neural_state = observation
 
+        neural_state = torch.tensor(np.array(neural_state), device=self.device)
         # 2. Logic / Hybrid Execution
         if not self.is_cnn:
             if logic_state is None:
@@ -161,11 +162,6 @@ class BlendrlRLAgent:
                     # Standard CNN or Unused Neural State
                     if isinstance(neural_state, (np.ndarray, list)):
                          neural_state = np.array(neural_state)
-                         # Check if it looks like raw pixels (e.g. 210x160)
-                         if neural_state.ndim >= 3 and (neural_state.shape[-2] > 84 or neural_state.shape[-3] > 84):
-                             neural_state = self._preprocess_frames(neural_state)
-                         else:
-                             neural_state = torch.as_tensor(neural_state, device=self.device)
                     elif isinstance(neural_state, torch.Tensor):
                          neural_state = neural_state.to(self.device)
 
@@ -177,7 +173,6 @@ class BlendrlRLAgent:
                 # Verify Neural Shape for CNN (if not MLP)
                 if not self.is_blender_mlp and neural_state is not None and neural_state.ndim == 3: # (C, H, W) -> Add Batch
                     neural_state = neural_state.unsqueeze(0)
-
                 action, _ = self.model.act(neural_state, logic_state)
                 # action is tensor, usually single value if batch=1
                 action_idx = action.item() if action.numel() == 1 else action[0].item()
@@ -203,50 +198,13 @@ class BlendrlRLAgent:
         # 3. CNN Execution
         else: # self.is_cnn
             # neural_state is the input
-            if isinstance(neural_state, (np.ndarray, list)):
-                 obs = self._preprocess_frames(neural_state)
-            elif isinstance(neural_state, torch.Tensor):
-                 obs = neural_state.to(self.device)
-            else:
-                 raise ValueError(f"Unknown neural input type: {type(neural_state)}")
+            obs = neural_state.to(self.device)
 
             with torch.no_grad():
                 logits = self.model(obs)
                 action_idx = torch.argmax(logits, dim=1).item()
                 
             return self._map_to_thinkrl(action_idx)
-
-    def _preprocess_frames(self, frame_np):
-        """
-        Convert (4, H, W, 3) RGB into (1, 4, 84, 84) Normalized Gray Tensor.
-        """
-        # Ensure input is numpy
-        if not isinstance(frame_np, np.ndarray):
-            frame_np = np.array(frame_np)
-            
-        # Check shape. If (H, W, 3), convert to (1, H, W, 3)
-        if frame_np.ndim == 3:
-            frame_np = frame_np[np.newaxis, ...]
-            
-        # Expect (4, H, W, 3)
-        processed_frames = []
-        for i in range(frame_np.shape[0]):
-            img = frame_np[i]
-            # Resize
-            img = cv2.resize(img, (84, 84), interpolation=cv2.INTER_AREA)
-            # Grayscale
-            if img.shape[-1] == 3:
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-            processed_frames.append(img)
-            
-        # Stack -> (4, 84, 84)
-        obs = np.stack(processed_frames, axis=0)
-        # Normalize? NO, CNNActor divides by 255.0 internally.
-        obs = obs.astype(np.float32)
-        # Add Batch Dim -> (1, 4, 84, 84)
-        obs_tensor = torch.tensor(obs, device=self.device).unsqueeze(0)
-        
-        return obs_tensor
 
     def _map_to_thinkrl(self, action_idx):
         # 1. Map Model Action -> Env Action

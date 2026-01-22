@@ -185,7 +185,6 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
         logic_obs = torch.tensor(np.array(logic_obs[:, -1]))
         # neural_obs has shape (batch, stack, h, w, c)
         # integrate stack into channel dimension
-        orig_shape = neural_obs.shape
         new_shape = (neural_obs.shape[0],) + self.single_observation_space
         neural_obs = neural_obs.reshape(new_shape)
         neural_obs = np.array(neural_obs)
@@ -207,7 +206,6 @@ class VectorizedNudgeEnv(VectorizedNudgeBaseEnv):
 
         # neural_obs has shape (batch, stack, h, w, c)
         # integrate stack into channel dimension
-        orig_shape = neural_obs.shape
         new_shape = (neural_obs.shape[0],) + self.single_observation_space
         neural_obs = neural_obs.reshape(new_shape)
         neural_obs = np.array(neural_obs)

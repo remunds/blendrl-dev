@@ -14,10 +14,11 @@ evals = {
 
 # BLENDRL
 evals = {
-    "kangaroo_jax_0": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0",
+    # "kangaroo_jax_0": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0",
     # "kangaroo_jax_1": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__1_20251118_140348",
     # "kangaroo_jax_2": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__2_20251118_222638",
     # "seaquest_jax_0": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0",
+    "seaquest_jax_0": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_171753"
     # "seaquest_jax_1": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__1_20251118_113132",
     # "seaquest_jax_2": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__2_20251118_140442"
 }
@@ -33,7 +34,8 @@ for run, path in evals.items():
     seed = int(run.split("_")[-1])
     # score, _, _, _, aligned_score, _ = evaluate(env_name, path, episodes=3, seed=seed, modified_env=False)
     # mod_score, _, _, _, mod_aligned_score, _ = evaluate(env_name, path, episodes=3, seed=seed, modified_env=True)
-    mod_score, _, _, _, mod_aligned_score, _ = evaluate(env_name, path, episodes=3, seed=seed, modified_env="chains")
+    # mod_score, _, _, _, mod_aligned_score, _ = evaluate(env_name, path, episodes=3, seed=seed, modified_env=None)
+    mod_score, _, _, _, mod_aligned_score, _ = evaluate(env_name, path, episodes=2, seed=seed, modified_env=None)
     # scores.append(score)
     # aligned_scores.append(aligned_score)
     mod_scores.append(mod_score)
