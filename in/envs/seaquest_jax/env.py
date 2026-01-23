@@ -1,3 +1,4 @@
+from charset_normalizer import detect
 import functools
 from typing import Sequence
 import torch
@@ -38,6 +39,8 @@ class NudgeEnv(NudgeBaseEnv):
     }
     pred_names: Sequence
     eval: bool = False # whether in eval mode
+    detect_all_enemies: bool = False
+    modified_env: str|None = None
 
     def __init__(
         self,
@@ -46,17 +49,20 @@ class NudgeEnv(NudgeBaseEnv):
         render_oc_overlay=False,
         seed=0,
         modified_env=None,
-        episodic_life=True
+        episodic_life=True,
+        detect_all_enemies=False,
     ):
         super().__init__(mode)
         # set up multiple envs
         # env = JaxSeaquest(reward_funcs=[blendrl_reward_function, total_collected])
+        self.detect_all_enemies=detect_all_enemies
         if mode == "eval":
             self.eval = True
         env = jaxatari.make("seaquest")
-        if modified_env is not None:
+        if modified_env is not None and modified_env != "None":
             env = jaxatari.make("seaquest", mods_config=[f"{modified_env}"])
             print(f"Using modified seaquest env with mod: {modified_env}")
+            self.modified_env = modified_env
 
         env = MultiRewardWrapper(env, reward_funcs=[blendrl_reward_function, total_collected])
     
@@ -118,15 +124,29 @@ class NudgeEnv(NudgeBaseEnv):
         final_obs = final_obs.at[0].set(jnp.array(player, dtype=jnp.int32))
         # sharks
         final_obs = final_obs.at[1:13].set(entity_array_to_nudge(obs.sharks))
+        if self.modified_env in ["mines"] and not self.detect_all_enemies:
+            # mines not detected
+            final_obs = final_obs.at[1:13].set(jnp.ones_like(final_obs[1:13]) * -1)
         
         # submarines
         final_obs = final_obs.at[13:25].set(entity_array_to_nudge(obs.submarines))
+        if self.modified_env in ["mines"] and not self.detect_all_enemies:
+            # mines not detected
+            final_obs = final_obs.at[13:25].set(jnp.ones_like(final_obs[13:25]) * -1)
         
         # divers
         final_obs = final_obs.at[25:29].set(entity_array_to_nudge(obs.divers))
+        if self.modified_env in ["no_divers"]:
+            # divers not detected
+            final_obs = final_obs.at[25:29].set(jnp.ones_like(final_obs[25:29]) * -1)
         
         # enemy missiles
+        #TODO: Are mines still shooting missiles?
         final_obs = final_obs.at[29:33].set(entity_array_to_nudge(obs.enemy_missiles)) 
+        if self.modified_env in ["fireballs"] and not self.detect_all_enemies:
+            # fireballs not detected as missiles
+            final_obs = final_obs.at[29:33].set(jnp.ones_like(final_obs[29:33]) * -1)
+
         # surface submarine
         final_obs = final_obs.at[33].set(jnp.array([obs.surface_submarine.active, obs.surface_submarine.x, obs.surface_submarine.y, 0]))
         # player missile

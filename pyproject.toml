@@ -17,5 +17,11 @@ dependencies = [
 [tool.uv.sources]
 nsfr = {path = "./nsfr", editable = true}
 nudge = {path = "./nudge", editable = true}
-jaxatari = { git = "ssh://git@github.com/k4ntz/JAXAtari", tag = "2d39774" }
+#jaxatari = { git = "ssh://git@github.com/k4ntz/JAXAtari", tag = "2d39774" }
 ocatari = { git = "ssh://git@github.com/k4ntz/OC_Atari", tag = "99c8746" }
+jaxatari = { workspace = true, editable = true }
+
+[tool.uv.workspace]
+members = [
+    "JAXAtari",
+]

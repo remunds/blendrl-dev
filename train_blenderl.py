@@ -113,7 +113,7 @@ class Args:
     """the function to blend the neural and logic agents: softmax or gumbel_softmax"""
     actor_mode: str = "hybrid"
     """the mode for the agent"""
-    actor_net_cnn: bool = False
+    actor_net_cnn: bool = True
     """the network architecture for the actor: cnn or mlp"""
     """Use False for JaxAtari envs"""
     rules: str = "default"

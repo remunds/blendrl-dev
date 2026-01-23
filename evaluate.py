@@ -15,7 +15,8 @@ def main(
     model: str = "blendrl",
     device: str = "cuda:0",
     seed: int = 0,
-    modified_env: bool = False,
+    modified_env: str|None = None,
+    detect_all_enemies: bool = False,
 ) -> None:
     """
     Evaluation script. This script evaluates the performance of the blendrl on new episodes.
@@ -29,7 +30,7 @@ def main(
         device=device,
         # env_kwargs=dict(render_oc_overlay=True),
         seed=seed,
-        env_kwargs=dict(render_oc_overlay=False, modified_env=modified_env),
+        env_kwargs=dict(render_oc_overlay=False, modified_env=modified_env, detect_all_enemies=detect_all_enemies),
         render_predicate_probs=True,
     )
     return evaluator.run()

@@ -78,6 +78,8 @@ class Evaluator:
         self.episodes = episodes
         self.agent_path = agent_path
         self.env_name = env_name
+        self.env_mod = env_kwargs.get("modified_env", None) if env_kwargs is not None else None
+        self.detect_all_enemies = "detect_all_enemies" if env_kwargs is not None and env_kwargs.get("detect_all_enemies", False) else "" 
 
         # Turn off episodic life for evaluation
         env_kwargs["episodic_life"] = False
@@ -86,6 +88,12 @@ class Evaluator:
         self.model = load_model(
             agent_path, env_kwargs_override=env_kwargs, device=device
         )
+        if "nudge" in agent_path.split("/")[0]:
+            print("nudge")
+            self.model_type = "nudge"
+        else:
+            self.model_type = "blendrl"
+
         self.env = NudgeBaseEnv.from_name(
             # env_name, mode="deictic", seed=seed, **env_kwargs
             env_name, mode="eval", seed=seed, **env_kwargs
@@ -268,10 +276,11 @@ class Evaluator:
         aligned_std_return = np.std(aligned_scores) if len(aligned_scores) > 0 else 0
 
         # Store episode_data
-        dir_path = "out/episode_data/"
+        out_str = "out_nudge" if self.model_type == "nudge" else "out"
+        dir_path = f"{out_str}/episode_data/"
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
-        data_path = dir_path + f"eval_episode_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.npz"
+        data_path = dir_path + f"eval_data_{self.env_name}_{self.env_mod}_{self.detect_all_enemies}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.npz"
         np.savez_compressed(data_path, **episode_data)
         print(f"Saved episode data to: {data_path}")
 

@@ -1,3 +1,4 @@
+from evaluate_baselines import detect_all_enemies
 from torch.special import modified_bessel_i0
 import functools
 from typing import Sequence
@@ -83,6 +84,7 @@ class NudgeEnv(NudgeBaseEnv):
     pred_names: Sequence
     modified_env: str = ""
     eval: bool = False # whether in eval mode
+    detect_all_enemies: bool = False
 
     def __init__(
         self,
@@ -91,7 +93,8 @@ class NudgeEnv(NudgeBaseEnv):
         render_oc_overlay=False,
         seed=0,
         modified_env=None,
-        episodic_life=True 
+        episodic_life=True,
+        detect_all_enemies=False, 
     ):
         """
         Constructor for the VectorizedNudgeEnv class.
@@ -110,9 +113,9 @@ class NudgeEnv(NudgeBaseEnv):
         print("Initializing JAXAtari Kangaroo environment...")
 
         env = jaxatari.make("kangaroo")
-        if modified_env is not None:
+        if modified_env is not None and modified_env != "None":
             # modified_env can be "center_ladders", "four_ladders", "flame_trap", "cactus_trap",
-            #  "danger_trap", "tanks", "snakes", "dragons", "replace_coconut_fireball", "replace_coconut_honey_bee",
+            #  "danger_trap", "tanks", "snakes", "dragons", "replace_coconut_fireball",
             #  "replace_coconut_wasp", "replace_coconut_honey_bee"
             env = jaxatari.make("kangaroo", mods_config=[f"{modified_env}"])
             print(f"Using modified Kangaroo environment: {modified_env}.")
@@ -160,6 +163,7 @@ class NudgeEnv(NudgeBaseEnv):
         print("Single logic obs space:", self.single_logic_observation_space)
 
         self.state = None
+        self.name = "kangaroo_jax"
 
     @functools.partial(jax.jit, static_argnums=(0,))
     def _kangaroo_observation_to_array(self, obs):

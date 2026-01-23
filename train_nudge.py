@@ -177,8 +177,8 @@ def main():
     torch.backends.cudnn.deterministic = args.torch_deterministic
 
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
-
     envs = VectorizedNudgeBaseEnv.from_name(args.env_name, n_envs=args.num_envs, mode=args.algorithm, seed=args.seed)#$, **env_kwargs)
+    envs.name = args.env_name
     agent = NsfrActorCritic(envs, args.rules, device, diff_claus_file=args.clause_file)
     if args.pretrained:
         # load neural agent weights
