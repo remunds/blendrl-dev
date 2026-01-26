@@ -13,7 +13,7 @@ from nudge.utils import load_model, load_neuralppo_model
 from nudge.env import NudgeBaseEnv
 
 class BlendrlRLAgent:
-    def __init__(self, env, checkpoint_path, env_name="kangaroo", device="cuda"):
+    def __init__(self, env, checkpoint_path, env_name="kangaroo", device="cuda", env_kwargs=None):
         """
         Adapter for BlendRL / Nudge agents (Logic, Neural, Hybrid).
         
@@ -23,6 +23,7 @@ class BlendrlRLAgent:
             checkpoint_path: Path to the checkpoint file or model directory.
             env_name: Name of the environment (e.g. 'kangaroo').
             device: 'cuda' or 'cpu'.
+            env_kwargs: Optional dictionary of environment keyword arguments to override.
         """
         print(f"[BlendRL] Initializing Agent for {env_name} from {checkpoint_path}...")
         self.device = torch.device(device)
@@ -46,7 +47,7 @@ class BlendrlRLAgent:
         # Attempt to Load Model
         # We try generic load_model first (handles Logic/Blend/Neural-PPO-Logic variants)
         # If that fails or if config suggests otherwise, we might try specific loaders
-        model_res = load_model(self.model_dir, steps=self.step, device=self.device)
+        model_res = load_model(self.model_dir, env_kwargs_override=env_kwargs, steps=self.step, device=self.device)
         if isinstance(model_res, tuple):
             self.model = model_res[0]
         else:
@@ -79,12 +80,8 @@ class BlendrlRLAgent:
         
         # Load Helper Env for Action Mapping & Metadata
         # We use mode='eval' to avoid training overheads
-        try:
-            # Don't want to use episodic_life during eval 
-            self.helper_env = NudgeBaseEnv.from_name(env_name, mode='eval', episodic_life=False)
-        except Exception as e:
-            print(f"[BlendRL] Warning: Could not instantiate helper NudgeEnv: {e}")
-            self.helper_env = None
+        # Don't want to use episodic_life during eval 
+        self.helper_env = NudgeBaseEnv.from_name(env_name, mode='eval', episodic_life=False, **(env_kwargs or {})) 
 
     def predict(self, observation):
         """

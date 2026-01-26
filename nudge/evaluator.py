@@ -78,24 +78,26 @@ class Evaluator:
         self.episodes = episodes
         self.agent_path = agent_path
         self.env_name = env_name
-        self.env_mod = env_kwargs.get("modified_env", None) if env_kwargs is not None else None
+        modified_env = env_kwargs.get("modified_env", None) if env_kwargs is not None else None
+        self.env_mod = "_".join(modified_env) if modified_env is not None and modified_env == [] else "default" 
         self.detect_all_enemies = "detect_all_enemies" if env_kwargs is not None and env_kwargs.get("detect_all_enemies", False) else "" 
 
         # Turn off episodic life for evaluation
         env_kwargs["episodic_life"] = False
 
         # Load model and environment
+        #TODO: here env_kwargs is wrong...
         self.model = load_model(
             agent_path, env_kwargs_override=env_kwargs, device=device
         )
         if "nudge" in agent_path.split("/")[0]:
-            print("nudge")
             self.model_type = "nudge"
-        if "nlrl" in agent_path.split("/")[0]:
-            print("nlrl")
+        elif "nlrl" in agent_path.split("/")[0]:
             self.model_type = "nlrl"
         else:
             self.model_type = "blendrl"
+        
+        print("model_type:", self.model_type)
 
         self.env = NudgeBaseEnv.from_name(
             # env_name, mode="deictic", seed=seed, **env_kwargs

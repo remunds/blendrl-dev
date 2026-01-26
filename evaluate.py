@@ -21,6 +21,11 @@ def main(
     """
     Evaluation script. This script evaluates the performance of the blendrl on new episodes.
     """
+    env_kwargs = { 
+        "modified_env": modified_env,
+        "detect_all_enemies": detect_all_enemies,
+    }
+    print("env_kwargs for Evaluator:", env_kwargs)
     evaluator = Evaluator(
         episodes=episodes,
         agent_path=agent_path,
@@ -30,7 +35,7 @@ def main(
         device=device,
         # env_kwargs=dict(render_oc_overlay=True),
         seed=seed,
-        env_kwargs=dict(render_oc_overlay=False, modified_env=modified_env, detect_all_enemies=detect_all_enemies),
+        env_kwargs=env_kwargs,
         render_predicate_probs=True,
     )
     return evaluator.run()

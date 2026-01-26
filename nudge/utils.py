@@ -103,6 +103,7 @@ def load_model(model_dir,
     # env_kwargs = dict(render_oc_overlay=True)
     env_kwargs = {}
     if env_kwargs_override is not None:
+        print("Overriding env kwargs with:", env_kwargs_override)
         env_kwargs.update(env_kwargs_override)
 
     # mlp_actor = "jax" in environment

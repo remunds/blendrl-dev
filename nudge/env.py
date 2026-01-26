@@ -53,8 +53,10 @@ class NudgeBaseEnv(ABC):
     def from_name(name: str, **kwargs):
         env_path = f"in/envs/{name}/env.py"
         print(f"Loading environment from {env_path}...")
+        print(f"With kwargs: {kwargs}")
+        if not "modified_env" in kwargs:
+            raise NotImplementedError
         env_module = load_module(env_path)
-        print("using kwargs:", kwargs)
         return env_module.NudgeEnv(**kwargs)
 
     def close(self):
