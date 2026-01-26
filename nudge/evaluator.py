@@ -91,6 +91,9 @@ class Evaluator:
         if "nudge" in agent_path.split("/")[0]:
             print("nudge")
             self.model_type = "nudge"
+        if "nlrl" in agent_path.split("/")[0]:
+            print("nlrl")
+            self.model_type = "nlrl"
         else:
             self.model_type = "blendrl"
 
@@ -249,7 +252,7 @@ class Evaluator:
                     dir_path = "out/videos/"
                     if not os.path.exists(dir_path):
                         os.makedirs(dir_path)
-                    path = dir_path + f"eval_video_{episode_count}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+                    path = dir_path + f"eval_video_{episode_count}_{self.env_name}_{self.env_mod}_{self.detect_all_enemies}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
 
 
                     video.write_videofile(path, fps=30)
@@ -276,7 +279,7 @@ class Evaluator:
         aligned_std_return = np.std(aligned_scores) if len(aligned_scores) > 0 else 0
 
         # Store episode_data
-        out_str = "out_nudge" if self.model_type == "nudge" else "out"
+        out_str = "out_nudge" if self.model_type == "nudge" else "out_nlrl" if self.model_type == "nlrl" else "out"
         dir_path = f"{out_str}/episode_data/"
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)

@@ -152,16 +152,8 @@ def main():
             # print(f"DEBUG: step_result len={len(step_result)}")
             
             # Unpack step result
-            if len(step_result) == 3:
-                obs, reward, done = step_result
-            elif len(step_result) == 4:
-                obs, reward, done, info = step_result
-            elif len(step_result) == 5:
-                # Gymnasium: obs, reward, terminated, truncated, info
-                obs, reward, term, trunc, info = step_result
-                done = term or trunc
-            else:
-                 raise ValueError(f"Unexpected step result length: {len(step_result)}")
+            obs, reward, trunc, term, info = step_result
+            done = term or trunc
             
             total_reward += reward
             steps += 1

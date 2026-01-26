@@ -29,47 +29,72 @@ evals = {
 #   - kangaroo: default, center_ladders, four_ladders, flame_trap, cactus_trap, danger_trap, tanks, snakes, dragons, replace_coconut_fireball, replace_coconut_honey_bee, replace_coconut_wasp
 #   - seaquest: default, fireballs, mines, no_divers
 # BLENDRL:
-# evals = {
-#     "seaquest_jax_0_fireballs": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_171753",
-#     "seaquest_jax_0_mines": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_171753",
-#     "seaquest_jax_0_mines-detect": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_171753",
-#     "seaquest_jax_0_no-divers": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_171753",
-#     "seaquest_jax_0_None": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_171753",
-
-#     "kangaroo_jax_0_None": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
-#     "kangaroo_jax_0_center-ladders": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
-#     "kangaroo_jax_0_four-ladders": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
-#     "kangaroo_jax_0_flame-trap": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
-#     "kangaroo_jax_0_cactus-trap": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
-#     "kangaroo_jax_0_danger-trap": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
-#     "kangaroo_jax_0_tanks": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
-#     "kangaroo_jax_0_snakes": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
-#     "kangaroo_jax_0_dragons": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
-#     "kangaroo_jax_0_replace-coconut-fireball": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
-#     "kangaroo_jax_0_replace-coconut-honey-bee": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
-#     "kangaroo_jax_0_replace-coconut-wasp": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
-# }
-# NUDGE
 evals = {
-    "seaquest_jax_0_fireballs": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_140233",
-    "seaquest_jax_0_mines": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_140233",
-    "seaquest_jax_0_mines-detect": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_140233",
-    "seaquest_jax_0_no-divers": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_140233",
-    "seaquest_jax_0_None": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_140233",
+    # "seaquest_jax_0_fireballs": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_171753",
+    # "seaquest_jax_0_mines": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_171753",
+    # "seaquest_jax_0_mines-detect": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_171753",
+    # "seaquest_jax_0_no-divers": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_171753",
+    # "seaquest_jax_0_None": "out/runs/seaquest_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_171753",
 
-    "kangaroo_jax_0_center-ladders": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
-    "kangaroo_jax_0_four-ladders": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
-    "kangaroo_jax_0_flame-trap": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
-    "kangaroo_jax_0_cactus-trap": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
-    "kangaroo_jax_0_danger-trap": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
-    "kangaroo_jax_0_tanks": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
-    "kangaroo_jax_0_snakes": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
-    "kangaroo_jax_0_dragons": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
-    "kangaroo_jax_0_replace-coconut-fireball": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
-    "kangaroo_jax_0_replace-coconut-honey-bee": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
-    "kangaroo_jax_0_replace-coconut-wasp": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
-    "kangaroo_jax_0_None": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+    "kangaroo_jax_0_None": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
+    "kangaroo_jax_0_no-coconut": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
+    # "kangaroo_jax_0_center-ladders": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
+    # "kangaroo_jax_0_four-ladders": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
+    # "kangaroo_jax_0_flame-trap": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
+    # "kangaroo_jax_0_cactus-trap": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
+    # "kangaroo_jax_0_danger-trap": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
+    # "kangaroo_jax_0_tanks": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
+    # "kangaroo_jax_0_snakes": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
+    # "kangaroo_jax_0_dragons": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
+    # "kangaroo_jax_0_replace-coconut-fireball": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
+    # "kangaroo_jax_0_replace-coconut-honey-bee": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
+    # "kangaroo_jax_0_replace-coconut-wasp": "out/runs/kangaroo_jax_softmax_blender_logic_lr_0.00025_llr_0.00025_blr_0.00025_gamma_0.99_bentcoef_0.01_numenvs_512_steps_128__0_20260119_161001",
 }
+
+# NUDGE
+# evals = {
+#     "seaquest_jax_0_fireballs": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_140233",
+#     "seaquest_jax_0_mines": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_140233",
+#     "seaquest_jax_0_mines-detect": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_140233",
+#     "seaquest_jax_0_no-divers": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_140233",
+#     "seaquest_jax_0_None": "out_nudge/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_140233",
+
+#     "kangaroo_jax_0_center-ladders": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+#     "kangaroo_jax_0_four-ladders": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+#     "kangaroo_jax_0_flame-trap": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+#     "kangaroo_jax_0_cactus-trap": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+#     "kangaroo_jax_0_danger-trap": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+#     "kangaroo_jax_0_tanks": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+#     "kangaroo_jax_0_snakes": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+#     "kangaroo_jax_0_dragons": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+#     "kangaroo_jax_0_replace-coconut-fireball": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+#     "kangaroo_jax_0_replace-coconut-honey-bee": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+#     "kangaroo_jax_0_replace-coconut-wasp": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+#     "kangaroo_jax_0_None": "out_nudge/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_512_steps_128_2_20251118_132417",
+# }
+
+# NLRL
+# evals = {
+#     "seaquest_jax_0_fireballs": "out_nlrl/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260124_003447",
+#     "seaquest_jax_0_mines": "out_nlrl/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260124_003447",
+#     "seaquest_jax_0_mines-detect": "out_nlrl/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260124_003447",
+#     "seaquest_jax_0_no-divers": "out_nlrl/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260124_003447",
+#     "seaquest_jax_0_None": "out_nlrl/runs/seaquest_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260124_003447",
+
+#     "kangaroo_jax_0_center-ladders": "out_nlrl/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260123_184901",
+#     "kangaroo_jax_0_four-ladders": "out_nlrl/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260123_184901",
+#     "kangaroo_jax_0_flame-trap": "out_nlrl/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260123_184901",
+#     "kangaroo_jax_0_cactus-trap": "out_nlrl/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260123_184901",
+#     "kangaroo_jax_0_danger-trap": "out_nlrl/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260123_184901",
+#     "kangaroo_jax_0_tanks": "out_nlrl/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260123_184901",
+#     "kangaroo_jax_0_snakes": "out_nlrl/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260123_184901",
+#     "kangaroo_jax_0_dragons": "out_nlrl/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260123_184901",
+#     "kangaroo_jax_0_replace-coconut-fireball": "out_nlrl/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260123_184901",
+#     "kangaroo_jax_0_replace-coconut-honey-bee": "out_nlrl/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260123_184901",
+#     "kangaroo_jax_0_replace-coconut-wasp": "out_nlrl/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260123_184901",
+    # "kangaroo_jax_0_None": "out_nlrl/runs/kangaroo_jax_softmax_lr_0.00025_llr_0.00025_gamma_0.99_numenvs_256_steps_128_0_20260123_184901",
+# }
+
 
 scores = []
 aligned_scores = []
